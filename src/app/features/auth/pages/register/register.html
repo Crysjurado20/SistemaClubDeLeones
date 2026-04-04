@@ -1,0 +1,249 @@
+<div class="flex flex-col min-h-screen bg-surface-50 dark:bg-surface-950">
+  <app-header></app-header>
+
+  <div
+    class="relative flex-1 flex items-center justify-center p-4 pt-16 md:p-8 md:pt-20 overflow-hidden"
+  >
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0 z-0">
+      <div
+        class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"
+      ></div>
+      <div
+        class="absolute -left-56 top-24 w-[34rem] h-16 bg-yellow-300 -rotate-45 opacity-70"
+      ></div>
+      <div
+        class="absolute -left-56 top-20 w-[36rem] h-1 -rotate-45"
+        style="background-color: var(--primary-color)"
+      ></div>
+      <div
+        class="absolute left-14 bottom-24 w-16 h-16 rounded-full bg-surface-200 dark:bg-surface-700 opacity-80"
+      ></div>
+      <div
+        class="absolute right-16 bottom-36 w-20 h-20 rounded-full opacity-70 flex items-center justify-center shadow-lg"
+        style="background-color: var(--primary-color)"
+      >
+        <span
+          class="text-yellow-400 font-serif font-bold text-5xl drop-shadow-md"
+          style="font-family: 'Times New Roman', serif"
+          >L</span
+        >
+      </div>
+      <svg
+        class="absolute -left-40 -bottom-40 w-[520px] h-[520px] opacity-95"
+        viewBox="0 0 600 600"
+        fill="none"
+      >
+        <path
+          d="M120 480C180 330 320 250 480 240"
+          stroke="var(--primary-color)"
+          stroke-width="26"
+          stroke-linecap="round"
+        />
+        <path
+          d="M170 520C250 330 390 270 540 260"
+          class="text-yellow-400"
+          stroke="currentColor"
+          stroke-width="26"
+          stroke-linecap="round"
+        />
+      </svg>
+    </div>
+
+    <div class="card relative z-10 max-w-5xl w-full mx-auto p-6 shadow-xl">
+      <div class="mb-6">
+        <p class="text-surface-700 dark:text-surface-200 text-lg mb-2">
+          Para completar el proceso, porfavor ingrese la siguiente información
+        </p>
+        <p class="text-right text-md text-surface-500">
+          Los campos con <span class="text-red-500 font-bold">*</span> son obligatorios
+        </p>
+      </div>
+
+      <p-fluid>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-1">
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base"
+              >
+                Cedula de Identidad: <span class="text-red-500 ml-1">*</span>
+              </p-inputgroup-addon>
+              <input pInputText [(ngModel)]="usuario.cedula" type="text" />
+            </p-inputgroup>
+          </div>
+          <div class="hidden md:block"></div>
+
+          <div>
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base"
+              >
+                Primer Nombre <span class="text-red-500 ml-1">*</span>
+              </p-inputgroup-addon>
+              <input
+                pInputText
+                [(ngModel)]="usuario.primerNombre"
+                placeholder="Primer Nombre"
+                type="text"
+              />
+            </p-inputgroup>
+          </div>
+          <div>
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base"
+              >
+                Segundo Nombre <span class="text-red-500 ml-1">*</span>
+              </p-inputgroup-addon>
+              <input
+                pInputText
+                [(ngModel)]="usuario.segundoNombre"
+                placeholder="Segundo Nombre"
+                type="text"
+              />
+            </p-inputgroup>
+          </div>
+
+          <div>
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base"
+              >
+                Apellido Paterno <span class="text-red-500 ml-1">*</span>
+              </p-inputgroup-addon>
+              <input
+                pInputText
+                [(ngModel)]="usuario.apellidoPaterno"
+                placeholder="Apellido Paterno"
+                type="text"
+              />
+            </p-inputgroup>
+          </div>
+          <div>
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base"
+              >
+                Apellido Materno <span class="text-red-500 ml-1">*</span>
+              </p-inputgroup-addon>
+              <input
+                pInputText
+                [(ngModel)]="usuario.apellidoMaterno"
+                placeholder="Apellido Materno"
+                type="text"
+              />
+            </p-inputgroup>
+          </div>
+
+          <div>
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base"
+              >
+                Fecha de Nacimiento <span class="text-red-500 ml-1">*</span>
+              </p-inputgroup-addon>
+              <p-datepicker
+                [(ngModel)]="usuario.fechaNacimiento"
+                [showIcon]="true"
+                dateFormat="dd/mm/yy"
+              ></p-datepicker>
+            </p-inputgroup>
+          </div>
+          <div>
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base"
+              >
+                Género <span class="text-red-500 ml-1">*</span>
+              </p-inputgroup-addon>
+              <p-select
+                [(ngModel)]="usuario.genero"
+                [options]="opcionesGenero"
+                optionLabel="name"
+                placeholder="-- Seleccione --"
+              ></p-select>
+            </p-inputgroup>
+          </div>
+
+          <div class="md:col-span-1">
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base"
+              >
+                Dirección <span class="text-red-500 ml-1">*</span>
+              </p-inputgroup-addon>
+              <input
+                pInputText
+                [(ngModel)]="usuario.direccion"
+                placeholder="Dirección"
+                type="text"
+              />
+            </p-inputgroup>
+          </div>
+          <div class="hidden md:block"></div>
+
+          <div>
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base flex items-center gap-2"
+              >
+                Teléfono Celular <i class="pi pi-mobile"></i> <span class="text-red-500">*</span>
+              </p-inputgroup-addon>
+              <input pInputText [(ngModel)]="usuario.telefono" placeholder="Teléfono" type="text" />
+            </p-inputgroup>
+          </div>
+          <div>
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base flex items-center gap-2"
+              >
+                Correo Electrónico <i class="pi pi-envelope"></i>
+                <span class="text-red-500">*</span>
+              </p-inputgroup-addon>
+              <input
+                pInputText
+                [(ngModel)]="usuario.correo"
+                placeholder="Ej. correo@dominio.com"
+                type="email"
+              />
+            </p-inputgroup>
+          </div>
+        </div>
+
+        <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div class="flex items-center">
+            <p-checkbox
+              [(ngModel)]="usuario.terminos"
+              [binary]="true"
+              inputId="terminos"
+            ></p-checkbox>
+            <label
+              for="terminos"
+              class="ml-2 text-surface-900 dark:text-surface-0 font-semibold text-sm sm:text-base cursor-pointer"
+            >
+              Aceptar terminos y condiciones de politica y privacidad de los datos
+              <span class="text-red-500">*</span>
+            </label>
+          </div>
+          <a
+            href="#"
+            class="text-blue-600 hover:underline flex items-center gap-1 font-semibold text-sm sm:text-base"
+          >
+            <i class="pi pi-file-pdf"></i> Ver terminos y condiciones
+          </a>
+        </div>
+
+        <div class="mt-8 flex justify-end gap-3">
+          <p-button
+            label="Cancelar"
+            icon="pi pi-times"
+            severity="secondary"
+            [outlined]="true"
+            routerLink="/landing"
+          ></p-button>
+          <p-button label="Registrarse" icon="pi pi-save" (onClick)="registrar()"></p-button>
+        </div>
+      </p-fluid>
+    </div>
+  </div>
+</div>

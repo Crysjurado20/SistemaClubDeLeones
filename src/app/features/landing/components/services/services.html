@@ -1,0 +1,29 @@
+<div id="features" class="py-14 px-14 lg:px-20 mt-8 mx-0 lg:mx-20">
+  <div class="grid grid-cols-12 gap-4 justify-center">
+    <div class="col-span-12 text-center mt-20 mb-6">
+      <div class="text-surface-900 dark:text-surface-0 font-normal mb-2 text-4xl">SERVICIOS</div>
+      <span class="text-muted-color text-2xl"
+        >Ponemos a su disposición una amplia gama de servicios y procedimientos médicos, enmarcados
+        en los principios Leonísticos.</span
+      >
+    </div>
+
+    <div *ngFor="let service of services" class="col-span-12 sm:col-span-6 lg:col-span-3">
+      <div
+        class="flex items-center bg-surface-0 dark:bg-surface-900 border border-surface rounded-border overflow-hidden"
+      >
+        <div
+          class="flex items-center justify-center w-16 h-16 flex-none"
+          style="background: var(--primary-color)"
+        >
+          <img [src]="service.icon" [alt]="service.name" class="w-9 h-9 object-contain" />
+        </div>
+        <div class="px-4 py-3">
+          <div class="text-surface-900 dark:text-surface-0 text-xl font-semibold leading-tight">
+            {{ service.name }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

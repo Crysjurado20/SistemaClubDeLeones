@@ -1,0 +1,30 @@
+.agenda-tabs {
+	background: var(--surface-card);
+	border-bottom: 1px solid var(--surface-border);
+}
+
+.agenda-estados {
+	font-family: var(--p-font-family);
+}
+
+:host ::ng-deep .slot-disponible {
+	cursor: pointer;
+}
+
+:host ::ng-deep .slot-disponible:hover {
+	background: var(--surface-hover);
+}
+
+:host ::ng-deep .slot-no-disponible {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+:host ::ng-deep .slot-empty-btn {
+	cursor: pointer;
+	border-radius: var(--content-border-radius);
+}
+
+:host ::ng-deep .slot-empty-btn:hover {
+	background: var(--surface-hover);
+}

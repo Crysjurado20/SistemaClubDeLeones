@@ -1,0 +1,310 @@
+<app-header
+  [title]="hospitalNombre()"
+  [showActions]="true"
+  [showThemeToggle]="true"
+  [showUser]="true"
+  [userLabel]="headerUserLabel()"
+  [showLogout]="true"
+  logoutLink="/auth/login"
+></app-header>
+
+<div class="pt-16 pb-6">
+  <div class="px-4 md:px-6 pt-4">
+    <div class="card shadow-lg w-full">
+      <div class="flex items-start justify-between flex-wrap gap-3 mb-4">
+        <div class="flex items-center gap-3">
+          <p-avatar
+            [label]="iniciales()"
+            size="xlarge"
+            shape="circle"
+            styleClass="bg-primary text-primary-contrast font-medium"
+          />
+
+          <div>
+            <div class="text-2xl font-bold text-surface-900 dark:text-surface-0">
+              {{ nombreCompleto() }}
+            </div>
+            <div class="text-surface-500">
+              HC #{{ header().historiaClinica }}
+              <span class="mx-2">·</span>
+              <span>Cédula: {{ header().cedula }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            pButton
+            label="Volver"
+            icon="pi pi-arrow-left"
+            class="p-button-outlined"
+            (click)="volver()"
+          ></button>
+        </div>
+      </div>
+
+      <p-divider />
+
+      <div class="mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="w-full">
+            <div class="border-1 border-surface-200 dark:border-surface-700 border-round p-4 h-full">
+              <div
+                class="text-sm font-medium text-color-secondary uppercase mb-3"
+                style="letter-spacing: 0.05em"
+              >
+                Datos personales
+              </div>
+
+              <table class="w-full text-sm hc-kv">
+                <tr>
+                  <th scope="row">DNI</th>
+                  <td class="font-medium text-surface-900 dark:text-surface-0">
+                    {{ datosPersonales().dni }}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Fecha de nac.</th>
+                  <td class="font-medium text-surface-900 dark:text-surface-0">
+                    {{ datosPersonales().fechaNacimiento }}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Sexo</th>
+                  <td class="font-medium text-surface-900 dark:text-surface-0">
+                    {{ datosPersonales().sexo }}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Teléfono</th>
+                  <td class="font-medium text-surface-900 dark:text-surface-0">
+                    {{ datosPersonales().telefono }}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Email</th>
+                  <td class="font-medium text-surface-900 dark:text-surface-0">
+                    @if (datosPersonales().email !== '—') {
+                      <a class="text-primary" [href]="'mailto:' + datosPersonales().email">
+                        {{ datosPersonales().email }}
+                      </a>
+                    } @else {
+                      <span class="text-surface-600">—</span>
+                    }
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="w-full flex flex-col gap-3">
+            <div class="border-1 border-surface-200 dark:border-surface-700 border-round p-4">
+              <div
+                class="text-sm font-medium text-color-secondary uppercase mb-3"
+                style="letter-spacing: 0.05em"
+              >
+                Diagnósticos activos
+              </div>
+
+              @if (diagnosticosActivos().length > 0) {
+                <div class="flex flex-wrap gap-2">
+                  @for (dx of diagnosticosActivos(); track dx.codigo) {
+                    <p-tag
+                      severity="secondary"
+                      styleClass="font-medium text-sm"
+                      [value]="dx.descripcion"
+                    ></p-tag>
+                  }
+                </div>
+              } @else {
+                <div class="text-sm text-surface-500">Sin diagnósticos activos.</div>
+              }
+            </div>
+
+            <div class="border-1 border-surface-200 dark:border-surface-700 border-round p-4">
+              <div
+                class="text-sm font-medium text-color-secondary uppercase mb-3"
+                style="letter-spacing: 0.05em"
+              >
+                Antecedentes
+              </div>
+
+              <div class="flex flex-col gap-2 text-sm">
+                @for (ant of antecedentes(); track ant.tipo) {
+                  <div>
+                    <span class="font-bold font-medium">{{ ant.tipo }}: </span>
+                    <span class="text-surface-600 font-medium text-sm">{{ ant.detalle }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p-divider class="my-4" />
+
+        <div class="flex items-center justify-between mb-3">
+          <div
+            class="text-sm font-medium text-color-secondary uppercase mb-3"
+            style="letter-spacing: 0.05em"
+          >
+            Historia Clínica
+          </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-3 mb-3">
+          <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+            <p-select
+              inputId="filtroEspecialidad"
+              [options]="especialidadOptions()"
+              [(ngModel)]="especialidadSeleccionada"
+              (ngModelChange)="onEspecialidadChange($event)"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full sm:w-64"
+            ></p-select>
+
+            <p-select
+              inputId="filtroTipoConsulta"
+              [options]="tipoConsultaOptions()"
+              [(ngModel)]="tipoConsultaSeleccionada"
+              (ngModelChange)="onTipoConsultaChange($event)"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full sm:w-56"
+            ></p-select>
+          </div>
+
+          <p-iconfield iconPosition="left" class="w-full lg:w-96">
+            <p-inputicon>
+              <i class="pi pi-search"></i>
+            </p-inputicon>
+            <input
+              pInputText
+              type="text"
+              class="w-full"
+              [value]="searchTurnos"
+              (input)="onSearchTurnosChange(($any($event.target)).value)"
+              placeholder="Buscar"
+            />
+          </p-iconfield>
+        </div>
+
+        <p-table
+          #turnosTable
+          [value]="turnos()"
+          dataKey="id"
+          [rows]="8"
+          [rowHover]="true"
+          [showGridlines]="true"
+          [paginator]="true"
+          [rowsPerPageOptions]="[8, 15, 25]"
+          [globalFilterFields]="[
+            'fecha',
+            'hora',
+            'doctor',
+            'especialidad',
+            'tipoConsulta',
+            'observacionTitulo',
+            'observacionDetalle'
+          ]"
+          responsiveLayout="scroll"
+          styleClass="p-datatable-sm hc-table"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th scope="col" style="min-width: 9rem">Fecha</th>
+              <th scope="col" style="min-width: 7rem">Hora</th>
+              <th scope="col" style="min-width: 18rem">Tipo de consulta</th>
+              <th scope="col" style="min-width: 26rem">Observaciones</th>
+              <th scope="col" style="min-width: 8rem; text-align: center">Medicación</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-turno>
+            <tr>
+              <td class="text-center text-sm font-medium text-surface-900 dark:text-surface-0 whitespace-nowrap">
+                {{ turno.fecha }}
+              </td>
+              <td class="text-center text-sm font-medium text-surface-900 dark:text-surface-0 whitespace-nowrap">
+                {{ formatHora(turno.hora) }}
+              </td>
+              <td class="font-medium text-sm text-surface-900 dark:text-surface-0 ">
+                  {{ turno.doctor }} · {{ turno.especialidad }} · {{ turno.tipoConsulta }}
+              </td>
+              <td>
+                <div class="flex flex-col">
+                  <div class="font-medium  font-bold text-sm text-surface-900 dark:text-surface-0">
+                    {{ turno.observacionTitulo }}
+                  </div>
+                  <div class="font-medium text-sm text-surface-900 dark:text-surface-0">
+                    {{ turno.observacionDetalle }}
+                  </div>
+                </div>
+              </td>
+              <td class="text-center">
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-file"
+                  class="p-button-text p-button-rounded"
+                  aria-label="Ver medicación"
+                  (click)="abrirMedicacion()"
+                ></button>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5" class="text-center p-6 text-lg text-surface-500">
+                <i class="pi pi-calendar-times text-4xl mb-3 block"></i>
+                No hay turnos registrados.
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <p-dialog
+        [(visible)]="verMedicacionModal"
+        header="Medicación"
+        [modal]="true"
+        [draggable]="false"
+        [style]="{ width: '42rem' }"
+      >
+        <p-table
+          [value]="medicacion()"
+          dataKey="id"
+          [rowHover]="true"
+          [showGridlines]="true"
+          responsiveLayout="scroll"
+          styleClass="p-datatable-sm hc-table"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th scope="col" style="min-width: 14rem">Medicamento</th>
+              <th scope="col" style="min-width: 14rem">Posología</th>
+              <th scope="col" style="min-width: 10rem">Fecha mandada</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-med>
+            <tr>
+              <td class="font-medium">{{ med.nombre }}</td>
+              <td class="text-surface-600">{{ med.posologia }}</td>
+              <td class="text-surface-600">{{ med.fechaMandada }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="3" class="text-center p-6 text-lg text-surface-500">
+                <i class="pi pi-inbox text-4xl mb-3 block"></i>
+                No hay medicación registrada.
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-dialog>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,202 @@
+<div
+  class="relative w-full min-h-[calc(100vh-5rem)] overflow-hidden flex flex-col items-center p-2 md:p-6 rounded-xl"
+>
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 z-0">
+    <div class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"></div>
+    <div class="absolute -left-56 top-24 w-[34rem] h-16 bg-yellow-300 -rotate-45 opacity-70"></div>
+    <div
+      class="absolute -left-56 top-20 w-[36rem] h-1 -rotate-45"
+      style="background-color: var(--primary-color)"
+    ></div>
+    <div
+      class="absolute left-14 bottom-24 w-16 h-16 rounded-full bg-surface-200 dark:bg-surface-700 opacity-80"
+    ></div>
+    <div
+      class="absolute right-16 bottom-36 w-20 h-20 rounded-full opacity-70 flex items-center justify-center shadow-lg"
+      style="background-color: var(--primary-color)"
+    >
+      <span
+        class="text-yellow-400 font-serif font-bold text-5xl drop-shadow-md"
+        style="font-family: 'Times New Roman', serif"
+        >L</span
+      >
+    </div>
+    <svg
+      class="absolute -left-40 -bottom-40 w-[520px] h-[520px] opacity-95"
+      viewBox="0 0 600 600"
+      fill="none"
+    >
+      <path
+        d="M120 480C180 330 320 250 480 240"
+        stroke="var(--primary-color)"
+        stroke-width="26"
+        stroke-linecap="round"
+      />
+      <path
+        d="M170 520C250 330 390 270 540 260"
+        class="text-yellow-400"
+        stroke="currentColor"
+        stroke-width="26"
+        stroke-linecap="round"
+      />
+    </svg>
+  </div>
+
+  <div class="relative z-10 w-full max-w-7xl">
+    <div
+      class="card shadow-xl p-4 md:p-6 bg-surface-0 dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-700"
+    >
+      <app-generic-crud
+        title="Gestión de Pacientes"
+        [items]="listaPacientes"
+        [columns]="columnasPacientes"
+        [globalFilterFields]="camposFiltro"
+        (onCreate)="abrirModalNuevo()"
+        (onEdit)="abrirModalEditar($event)"
+        (onDelete)="eliminarPaciente($event)"
+      >
+      </app-generic-crud>
+    </div>
+  </div>
+</div>
+
+<p-dialog
+  [(visible)]="mostrarModalDialog"
+  [style]="{ width: '800px' }"
+  header="Registro del Paciente"
+  [modal]="true"
+  [breakpoints]="{ '768px': '90vw' }"
+>
+  <ng-template #content>
+    <p-fluid>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+        <div class="field md:col-span-2">
+          <label for="cedula" class="font-bold mb-2 block"
+            >Cédula de Identidad <span class="text-red-500">*</span></label
+          >
+          <input
+            type="text"
+            pInputText
+            id="cedula"
+            [(ngModel)]="pacienteActual.cedula"
+            required
+            autofocus
+            placeholder="Ej: 1801234567"
+          />
+        </div>
+
+        <div class="field">
+          <label for="primerNombre" class="font-bold mb-2 block"
+            >Primer Nombre <span class="text-red-500">*</span></label
+          >
+          <input
+            type="text"
+            pInputText
+            id="primerNombre"
+            [(ngModel)]="pacienteActual.primerNombre"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="segundoNombre" class="font-bold mb-2 block">Segundo Nombre</label>
+          <input
+            type="text"
+            pInputText
+            id="segundoNombre"
+            [(ngModel)]="pacienteActual.segundoNombre"
+          />
+        </div>
+
+        <div class="field">
+          <label for="apellidoPaterno" class="font-bold mb-2 block"
+            >Apellido Paterno <span class="text-red-500">*</span></label
+          >
+          <input
+            type="text"
+            pInputText
+            id="apellidoPaterno"
+            [(ngModel)]="pacienteActual.apellidoPaterno"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="apellidoMaterno" class="font-bold mb-2 block">Apellido Materno</label>
+          <input
+            type="text"
+            pInputText
+            id="apellidoMaterno"
+            [(ngModel)]="pacienteActual.apellidoMaterno"
+          />
+        </div>
+
+        <div class="field">
+          <label for="fechaNacimiento" class="font-bold mb-2 block">Fecha de Nacimiento</label>
+          <input
+            type="date"
+            pInputText
+            id="fechaNacimiento"
+            [(ngModel)]="pacienteActual.fechaNacimiento"
+          />
+        </div>
+        <div class="field">
+          <label for="genero" class="font-bold mb-2 block">Género</label>
+          <p-select
+            id="genero"
+            [options]="opcionesGenero"
+            [(ngModel)]="pacienteActual.genero"
+            placeholder="Seleccionar género"
+            optionLabel="name"
+            styleClass="w-full"
+          >
+          </p-select>
+        </div>
+
+        <div class="field">
+          <label for="telefono" class="font-bold mb-2 block"
+            >Teléfono Celular <span class="text-red-500">*</span></label
+          >
+          <input
+            type="text"
+            pInputText
+            id="telefono"
+            [(ngModel)]="pacienteActual.telefono"
+            required
+            placeholder="099..."
+          />
+        </div>
+        <div class="field">
+          <label for="correo" class="font-bold mb-2 block">Correo Electrónico</label>
+          <input
+            type="email"
+            pInputText
+            id="correo"
+            [(ngModel)]="pacienteActual.correo"
+            placeholder="paciente@correo.com"
+          />
+        </div>
+
+        <div class="field md:col-span-2">
+          <label for="direccion" class="font-bold mb-2 block">Dirección de Domicilio</label>
+          <input
+            type="text"
+            pInputText
+            id="direccion"
+            [(ngModel)]="pacienteActual.direccion"
+            placeholder="Calle principal y secundaria..."
+          />
+        </div>
+      </div>
+    </p-fluid>
+  </ng-template>
+
+  <ng-template #footer>
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      [text]="true"
+      severity="secondary"
+      (onClick)="ocultarDialog()"
+    ></p-button>
+    <p-button label="Guardar Registro" icon="pi pi-save" (onClick)="guardarPaciente()"></p-button>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,146 @@
+<app-header
+  [title]="hospitalNombre()"
+  [showActions]="true"
+  [showThemeToggle]="true"
+  [showUser]="true"
+  [userLabel]="headerUserLabel()"
+  [showLogout]="true"
+  logoutLink="/auth/login"
+></app-header>
+
+<div class="pt-16 pb-6">
+  <p-tabs class="w-full agenda-tabs px-4 md:px-6" [value]="activeTab" (valueChange)="onTabValueChange($event)">
+    <p-tablist>
+      <p-tab *ngFor="let tab of navTabs" [value]="tab.value">
+        <i class="mr-2" [ngClass]="tab.icon"></i>
+        <span>{{ tab.label }}</span>
+      </p-tab>
+    </p-tablist>
+  </p-tabs>
+
+  <div class="px-4 md:px-6 pt-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <!-- Horario semanal -->
+      <div class="card shadow-lg">
+        <div class="flex items-center gap-2 mb-3">
+          <i class="pi pi-clock text-surface-700 dark:text-surface-100"></i>
+          <div class="text-lg font-medium text-surface-900 dark:text-surface-0">Horario semanal</div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          @for (dia of horarioSemana; track dia.key) {
+            <div class="grid grid-cols-[42px_48px_1fr_18px_1fr] gap-2 items-center">
+              <div class="text-sm font-medium text-surface-700 dark:text-surface-100">{{ dia.label }}</div>
+
+              <div class="flex justify-center">
+                <p-toggleswitch [(ngModel)]="dia.activo" (ngModelChange)="onToggleDia(dia)"></p-toggleswitch>
+              </div>
+
+              <p-select
+                [options]="timeOptions()"
+                [(ngModel)]="dia.inicio"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="--:--"
+                appendTo="body"
+                styleClass="w-full"
+                [disabled]="!dia.activo"
+                (ngModelChange)="onChangeHora(dia)"
+              ></p-select>
+
+              <div class="text-center text-surface-500">a</div>
+
+              <p-select
+                [options]="timeOptions()"
+                [(ngModel)]="dia.fin"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="--:--"
+                appendTo="body"
+                styleClass="w-full"
+                [disabled]="!dia.activo"
+                (ngModelChange)="onChangeHora(dia)"
+              ></p-select>
+            </div>
+          }
+        </div>
+
+        <p-divider></p-divider>
+
+        <div class="flex justify-end gap-2">
+          <button pButton type="button" label="Guardar cambios" (click)="guardarCambios()"></button>
+          <button
+            pButton
+            type="button"
+            label="Cancelar"
+            class="p-button-outlined"
+            (click)="cancelar()"
+          ></button>
+        </div>
+      </div>
+
+      <!-- Bloquear días -->
+      <div class="card shadow-lg">
+        <div class="flex items-center gap-2 mb-3">
+          <i class="pi pi-calendar text-surface-700 dark:text-surface-100"></i>
+          <div class="text-lg font-medium text-surface-900 dark:text-surface-0">Bloquear días</div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <p-datepicker
+            [inline]="true"
+            selectionMode="multiple"
+            [(ngModel)]="fechasSeleccionadas"
+            [showOtherMonths]="true"
+            [disabledDays]="[0, 6]"
+            styleClass="w-full"
+          >
+            <ng-template pTemplate="date" let-date>
+              <span
+                class="inline-flex w-8 h-8 items-center justify-center border-round text-sm"
+                [ngClass]="getDateCellClass(date)"
+              >
+                {{ date.day }}
+              </span>
+            </ng-template>
+          </p-datepicker>
+
+          <div class="flex items-center gap-4 text-xs text-surface-600 dark:text-surface-300 flex-wrap">
+            <span class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-surface-300"></span> Finde / fuera
+            </span>
+            <span class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span> Vacaciones
+            </span>
+            <span class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-primary"></span> Seleccionado
+            </span>
+          </div>
+
+          <div>
+            <label class="text-sm font-medium block mb-2" for="motivo">Motivo del bloqueo</label>
+            <p-select
+              inputId="motivo"
+              [options]="motivoOptions()"
+              [(ngModel)]="motivoBloqueo"
+              optionLabel="label"
+              optionValue="value"
+              appendTo="body"
+              styleClass="w-full"
+            ></p-select>
+          </div>
+
+          <button
+            pButton
+            type="button"
+            label="Confirmar bloqueo"
+            icon="pi pi-external-link"
+            class="w-full"
+            [disabled]="!fechasSeleccionadas.length"
+            (click)="confirmarBloqueo()"
+          ></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,74 @@
+<div class="card">
+  <p-fieldset legend="2. Selecciona una Fecha" [toggleable]="false">
+    <div class="w-full max-w-5xl mx-auto">
+      <div class="flex items-center justify-between gap-3 mb-2">
+        <p-button label="< Anterior" severity="primary" (onClick)="prevMonth()" />
+        <div class="text-center font-semibold text-lg sm:text-xl">{{ monthLabel }}</div>
+        <p-button label="Siguiente >" severity="primary" (onClick)="nextMonth()" />
+      </div>
+
+      <div class="grid grid-cols-7 gap-1.5 sm:gap-2 mb-2">
+        <div
+          *ngFor="let wd of weekDayLabels"
+          class="text-center text-[10px] sm:text-sm leading-tight font-semibold text-surface-600 dark:text-surface-300"
+        >
+          {{ wd }}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-7 gap-1.5 sm:gap-2">
+        <ng-container *ngFor="let cell of monthCells; trackBy: trackByCell">
+          <div *ngIf="cell.date; else emptyCell" class="h-12 sm:h-14">
+            <button
+              type="button"
+              (click)="selectDateAndOpen(cell)"
+              class="w-full h-full rounded-none p-1 sm:p-1.5 transition-colors border-0 focus:outline-none focus:ring-0 focus-visible:outline-none"
+              [disabled]="!cell.available"
+              [class.cursor-not-allowed]="!cell.available"
+              [class.opacity-70]="!cell.available"
+              [class.bg-surface-0]="cell.available"
+              [class.dark:bg-surface-900]="cell.available"
+              [class.bg-surface-100]="!cell.available"
+              [class.dark:bg-surface-800]="!cell.available"
+              [class.text-surface-400]="!cell.available"
+              [class.dark:text-surface-500]="!cell.available"
+              [class.ring-2]="isSelected(cell.date)"
+              [class.ring-inset]="isSelected(cell.date)"
+              [class.ring-green-600]="isSelected(cell.date)"
+              [class.dark:ring-green-400]="isSelected(cell.date)"
+              [style.background]="
+                cell.available ? (isSelected(cell.date) ? selectedBg : availableBg) : null
+              "
+            >
+              <div class="h-full w-full flex flex-col items-center justify-center text-center">
+                <div class="text-base sm:text-lg font-semibold leading-none">
+                  {{ cell.date.getDate() }}
+                </div>
+
+                <ng-container *ngIf="cell.available; else notAvailable">
+                  <div
+                    class="mt-1 text-[9px] sm:text-xs leading-tight text-green-600 dark:text-green-400 whitespace-nowrap"
+                  >
+                    <span class="sm:hidden">{{ cell.slots }} tur..</span>
+                    <span class="hidden sm:inline">{{ cell.slots }} turnos disponibles</span>
+                  </div>
+                </ng-container>
+
+                <ng-template #notAvailable>
+                  <div
+                    class="mt-1 text-[9px] sm:text-xs leading-tight text-surface-500 dark:text-surface-400 whitespace-nowrap"
+                  >
+                    <span class="sm:hidden">No disp.</span>
+                    <span class="hidden sm:inline">No disponible</span>
+                  </div>
+                </ng-template>
+              </div>
+            </button>
+          </div>
+
+          <ng-template #emptyCell><div class="h-12 sm:h-14"></div></ng-template>
+        </ng-container>
+      </div>
+    </div>
+  </p-fieldset>
+</div>

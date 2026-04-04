@@ -1,0 +1,56 @@
+<div class="card">
+  <div
+    class="w-full bg-primary text-primary-contrast text-center font-semibold py-1 mb-4 rounded-none"
+  >
+    Agendamiento
+  </div>
+
+  <p-fieldset legend="1. Selecciona una Especialidad" [toggleable]="false">
+    <div class="w-full flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        class="w-full flex flex-wrap items-stretch gap-2 sm:flex-nowrap sm:items-center sm:flex-1 sm:min-w-0"
+      >
+        <p-inputgroup class="flex-1 min-w-0 sm:flex-initial sm:min-w-0">
+          <p-inputgroup-addon class="flex items-center gap-2">
+            <i class="pi pi-briefcase"></i>
+          </p-inputgroup-addon>
+          <p-select
+            styleClass="w-full sm:w-64"
+            icon="pi pi-chevron-down"
+            [(ngModel)]="dropdownValue"
+            [options]="dropdownValues"
+            optionLabel="name"
+            placeholder="Seleccione .."
+          />
+        </p-inputgroup>
+        <p-button
+          class="sm:w-auto"
+          label="Buscar"
+          icon="pi pi-search"
+          severity="success"
+          [loading]="isLoading"
+          (click)="buscar()"
+        />
+      </div>
+
+      <div
+        class="w-full grid grid-cols-2 gap-2 sm:w-auto sm:flex sm:flex-row sm:items-center sm:justify-end"
+      >
+        <p-button
+          class="w-full sm:w-auto"
+          icon="pi pi-calendar"
+          label="Consulta tus Citas"
+          severity="success"
+          routerLink="/appointment-list"
+        />
+        <p-button
+          class="w-full sm:w-auto"
+          icon="pi pi-file"
+          label="Consulta tus facturas"
+          severity="success"
+          routerLink="/invoices-list"
+        />
+      </div>
+    </div>
+  </p-fieldset>
+</div>

@@ -1,0 +1,205 @@
+  <div
+    class="relative w-full min-h-[calc(100vh-5rem)] overflow-hidden flex flex-col items-center p-2 md:p-6 rounded-xl"
+  >
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0 z-0">
+      <div class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"></div>
+      <div class="absolute -left-56 top-24 w-[34rem] h-16 bg-yellow-300 -rotate-45 opacity-70"></div>
+      <div
+        class="absolute -left-56 top-20 w-[36rem] h-1 -rotate-45"
+        style="background-color: var(--primary-color)"
+      ></div>
+      <div
+        class="absolute left-14 bottom-24 w-16 h-16 rounded-full bg-surface-200 dark:bg-surface-700 opacity-80"
+      ></div>
+
+      <div
+        class="absolute right-16 bottom-36 w-20 h-20 rounded-full opacity-70 flex items-center justify-center shadow-lg"
+        style="background-color: var(--primary-color)"
+      >
+        <span
+          class="text-yellow-400 font-serif font-bold text-5xl drop-shadow-md"
+          style="font-family: 'Times New Roman', serif"
+          >L</span
+        >
+      </div>
+
+      <svg
+        class="absolute -left-40 -bottom-40 w-[520px] h-[520px] opacity-95"
+        viewBox="0 0 600 600"
+        fill="none"
+      >
+        <path
+          d="M120 480C180 330 320 250 480 240"
+          stroke="var(--primary-color)"
+          stroke-width="26"
+          stroke-linecap="round"
+        />
+        <path
+          d="M170 520C250 330 390 270 540 260"
+          class="text-yellow-400"
+          stroke="currentColor"
+          stroke-width="26"
+          stroke-linecap="round"
+        />
+      </svg>
+    </div>
+
+    <div class="relative z-10 w-full max-w-7xl">
+      <div
+        class="card shadow-xl p-4 md:p-6 bg-surface-0 dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-700"
+      >
+        <app-generic-crud
+          title="Lista de Doctores"
+          [items]="listaDoctores"
+          [columns]="columnasDoctores"
+          [globalFilterFields]="camposFiltro"
+          [expandable]="true"
+          expandedArrayField="especialidad"
+          [expandedColumns]="columnasEspecialidades"
+          (onCreate)="abrirModalNuevo()"
+          (onEdit)="abrirModalEditar($event)"
+          (onDelete)="eliminarDoctor($event)"
+        >
+        </app-generic-crud>
+      </div>
+    </div>
+  </div>
+
+  <p-dialog
+    [(visible)]="mostrarModalDialog"
+    [style]="{ width: '700px' }"
+    header="Registro del Profesional Médico"
+    [modal]="true"
+    [breakpoints]="{ '768px': '90vw' }"
+  >
+    <ng-template #content>
+      <p-fluid>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div class="field">
+            <label for="cedula" class="font-bold mb-2 block"
+              >Cédula de Identidad <span class="text-red-500">*</span></label
+            >
+            <input
+              type="text"
+              pInputText
+              id="cedula"
+              [(ngModel)]="doctorActual.cedula"
+              required
+              autofocus
+              placeholder="Ej: 1712345678"
+            />
+          </div>
+
+          <div class="field">
+            <label for="licencia" class="font-bold mb-2 block">Licencia Profesional (Opcional)</label>
+            <input
+              type="text"
+              pInputText
+              id="licencia"
+              [(ngModel)]="doctorActual.licencia"
+              placeholder="Ej: MED-9932"
+            />
+          </div>
+
+          <div class="field md:col-span-2">
+            <label for="nombre" class="font-bold mb-2 block"
+              >Nombres y Apellidos <span class="text-red-500">*</span></label
+            >
+            <input type="text" pInputText id="nombre" [(ngModel)]="doctorActual.nombre" required />
+          </div>
+
+          <div class="field">
+            <label for="correo" class="font-bold mb-2 block"
+              >Correo Electrónico <span class="text-red-500">*</span></label
+            >
+            <input
+              type="email"
+              pInputText
+              id="correo"
+              [(ngModel)]="doctorActual.correo"
+              required
+              placeholder="dr@hospital.com"
+            />
+          </div>
+
+          <div class="field">
+            <label for="telefono" class="font-bold mb-2 block"
+              >Teléfono Celular <span class="text-red-500">*</span></label
+            >
+            <input
+              type="text"
+              pInputText
+              id="telefono"
+              [(ngModel)]="doctorActual.telefono"
+              required
+              placeholder="099..."
+            />
+          </div>
+
+          <div class="field md:col-span-2">
+            <label for="especialidad" class="font-bold mb-2 block"
+              >Especialidad(es) <span class="text-red-500">*</span></label
+            >
+            <p-multiselect
+              id="especialidad"
+              [options]="especialidadesOpciones"
+              [(ngModel)]="doctorActual.especialidad"
+              placeholder="Seleccionar especialidades..."
+              optionLabel="name"
+              display="chip"
+              [filter]="true"
+              styleClass="w-full"
+            >
+            </p-multiselect>
+          </div>
+
+          <div
+            class="field md:col-span-2 bg-surface-50 dark:bg-surface-800 p-4 rounded-lg border border-surface-200 dark:border-surface-700"
+            *ngIf="doctorActual.especialidad && doctorActual.especialidad.length > 0"
+          >
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div *ngFor="let esp of doctorActual.especialidad" class="flex flex-col gap-2">
+                <span class="font-medium text-sm">{{ esp.name }} ($)</span>
+                <p-inputnumber
+                  [(ngModel)]="esp.precio"
+                  mode="currency"
+                  currency="USD"
+                  locale="en-US"
+                  placeholder="0.00"
+                  class="w-full"
+                ></p-inputnumber>
+              </div>
+            </div>
+          </div>
+
+          <div class="field md:col-span-2">
+            <label for="dias" class="font-bold mb-2 block"
+              >Días de Atención <span class="text-red-500">*</span></label
+            >
+            <p-multiselect
+              id="dias"
+              [options]="diasSemana"
+              [(ngModel)]="doctorActual.dias"
+              placeholder="Seleccionar días..."
+              optionLabel="name"
+              display="chip"
+              styleClass="w-full"
+            >
+            </p-multiselect>
+          </div>
+        </div>
+      </p-fluid>
+    </ng-template>
+
+    <ng-template #footer>
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        [text]="true"
+        severity="secondary"
+        (onClick)="ocultarDialog()"
+      ></p-button>
+      <p-button label="Guardar Registro" icon="pi pi-save" (onClick)="guardarDoctor()"></p-button>
+    </ng-template>
+  </p-dialog>

@@ -1,0 +1,137 @@
+<app-header
+  [title]="hospitalNombre"
+  [showActions]="true"
+  [showThemeToggle]="true"
+  [showUser]="true"
+  [userLabel]="headerUserLabel"
+  [showLogout]="true"
+  logoutLink="/auth/login"
+></app-header>
+
+<div class="pt-16 pb-6">
+  <p-tabs class="w-full agenda-tabs px-4 md:px-6" [value]="activeTab" (valueChange)="onTabValueChange($event)">
+    <p-tablist>
+      <p-tab *ngFor="let tab of navTabs" [value]="tab.value">
+        <i class="mr-2" [ngClass]="tab.icon"></i>
+        <span>{{ tab.label }}</span>
+      </p-tab>
+    </p-tablist>
+  </p-tabs>
+
+  <div class="px-4 md:px-6 pt-4">
+    <div class="card shadow-lg w-full">
+      <p-table
+        #dt
+        [value]="turnos"
+        dataKey="historiaClinica"
+        [rows]="10"
+        [rowHover]="true"
+        [showGridlines]="true"
+        [paginator]="true"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [globalFilterFields]="['cedula', 'apellidos', 'nombres']"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="caption">
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <button
+                pButton
+                label="Limpiar Filtros"
+                class="p-button-outlined w-full sm:w-auto"
+                icon="pi pi-filter-slash"
+                (click)="limpiarFiltros()"
+              ></button>
+
+              <p-select
+                inputId="estado"
+                [options]="estadoOptions"
+                [(ngModel)]="estadoSeleccionado"
+                optionLabel="label"
+                optionValue="value"
+                (onChange)="onEstadoChange()"
+                class="w-full sm:w-56"
+              ></p-select>
+            </div>
+
+            <p-iconfield iconPosition="left" class="w-full sm:w-80">
+              <p-inputicon>
+                <i class="pi pi-search"></i>
+              </p-inputicon>
+              <input
+                id="buscar"
+                pInputText
+                type="text"
+                class="w-full"
+                [(ngModel)]="searchTerm"
+                (input)="onSearchChange()"
+                placeholder="Buscar por cédula o nombres"
+              />
+            </p-iconfield>
+          </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th scope="col" style="min-width: 12rem">N-Historia Clínica</th>
+            <th scope="col" style="min-width: 18rem">Apellidos y Nombres</th>
+            <th scope="col" style="min-width: 14rem">Tipo consulta</th>
+            <th scope="col" class="w-40" style="min-width: 10rem">Estado</th>
+            <th scope="col" style="min-width: 10rem; text-align: center">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>
+              <button
+                pButton
+                type="button"
+                class="p-button-link p-0 font-medium text-primary"
+                (click)="verHistoriaClinica(row)"
+              >
+                {{ row.historiaClinica }}
+              </button>
+            </td>
+            <td>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-user text-primary"></i>
+                <span class="font-medium text-surface-900 dark:text-surface-0">
+                  {{ row.apellidos }} {{ row.nombres }}
+                </span>
+              </div>
+            </td>
+            <td>
+              {{ row.tipoConsulta }}
+            </td>
+            <td>
+              <p-tag
+                [value]="getLabelEstado(row.estado)"
+                [severity]="getSeverity(row.estado)"
+              ></p-tag>
+            </td>
+            <td class="text-center">
+              <button
+                pButton
+                type="button"
+                label="Atender"
+                icon="pi pi-file-edit"
+                class="p-button-sm"
+                (click)="atender(row)"
+              ></button>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center p-6 text-lg text-surface-500">
+              <i class="pi pi-calendar-times text-4xl mb-3 block"></i>
+              No hay turnos agendados.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>

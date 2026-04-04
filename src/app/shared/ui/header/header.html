@@ -1,0 +1,15 @@
+<app-navbar
+  [homeLink]="homeLink()"
+  [logoSrc]="logoSrc()"
+  [logoAlt]="logoAlt()"
+  [title]="title()"
+  [showMenuToggle]="showMenuToggle()"
+  [showActions]="showActions()"
+  [showThemeToggle]="showThemeToggle()"
+  [showUser]="showUser()"
+  [userLabel]="userLabel()"
+  [showLogout]="showLogout()"
+  [logoutLink]="logoutLink()"
+>
+  <ng-content select="[navbar-actions]"></ng-content>
+</app-navbar>

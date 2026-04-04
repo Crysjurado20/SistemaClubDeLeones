@@ -1,0 +1,36 @@
+:host {
+  display: block;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  white-space: nowrap;
+}
+
+:host ::ng-deep .hc-table .p-datatable-thead > tr > th {
+  text-align: center;
+}
+
+:host ::ng-deep .hc-table .p-datatable-tbody > tr > td {
+  text-align: justify;
+}
+
+:host ::ng-deep .hc-table .p-datatable-tbody > tr > td.text-center {
+  text-align: center;
+}
+
+.hc-kv {
+  border-collapse: collapse;
+}
+
+.hc-kv th,
+.hc-kv td {
+  padding: 0.35rem 0;
+  vertical-align: top;
+}
+
+.hc-kv th {
+  width: 42%;
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-color-secondary);
+}

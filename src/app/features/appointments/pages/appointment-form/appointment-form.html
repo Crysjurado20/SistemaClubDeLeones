@@ -1,0 +1,89 @@
+<div class="relative overflow-hidden bg-surface-50 dark:bg-surface-950 min-h-screen">
+  <div class="relative z-50">
+    <app-header
+      title="Club de Leones"
+      [showActions]="true"
+      [showThemeToggle]="true"
+      [showUser]="true"
+      [userLabel]="userLabel"
+      [showLogout]="true"
+      logoutLink="/auth/login"
+    ></app-header>
+  </div>
+
+  <p-toast position="top-right"></p-toast>
+  <p-confirmDialog
+    key="citaConfirm"
+    [style]="{ width: '400px' }"
+    rejectButtonStyleClass="p-button-text"
+  ></p-confirmDialog>
+
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 z-0">
+    <div class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"></div>
+    <div class="absolute -left-56 top-24 w-[34rem] h-16 bg-yellow-300 -rotate-45 opacity-70"></div>
+    <div
+      class="absolute -left-56 top-20 w-[36rem] h-1 -rotate-45"
+      style="background-color: var(--primary-color)"
+    ></div>
+    <div
+      class="absolute left-14 bottom-24 w-16 h-16 rounded-full bg-surface-200 dark:bg-surface-700 opacity-80"
+    ></div>
+    <div
+      class="absolute right-16 bottom-36 w-20 h-20 rounded-full opacity-70 flex items-center justify-center shadow-lg"
+      style="background-color: var(--primary-color)"
+    >
+      <span
+        class="text-yellow-400 font-serif font-bold text-5xl drop-shadow-md"
+        style="font-family: 'Times New Roman', serif"
+        >L</span
+      >
+    </div>
+    <svg
+      class="absolute -left-40 -bottom-40 w-[520px] h-[520px] opacity-95"
+      viewBox="0 0 600 600"
+      fill="none"
+    >
+      <path
+        d="M120 480C180 330 320 250 480 240"
+        stroke="var(--primary-color)"
+        stroke-width="26"
+        stroke-linecap="round"
+      />
+      <path
+        d="M170 520C250 330 390 270 540 260"
+        class="text-yellow-400"
+        stroke="currentColor"
+        stroke-width="26"
+        stroke-linecap="round"
+      />
+    </svg>
+  </div>
+
+  <div class="relative z-10 p-4 md:p-6 flex flex-col pt-16 md:pt-18">
+    <ng-container *ngIf="vistaActual === 'agendamiento'">
+      <app-selector-especialidad (onSearch)="recibirEspecialidad($event)">
+      </app-selector-especialidad>
+
+      <div class="mt-4">
+        <app-calendar-custom (dateSelected)="abrirModalDoctores($event)"> </app-calendar-custom>
+      </div>
+
+      <app-doctor-time-modal
+        [(visible)]="mostrarModal"
+        [medicos]="listaMedicos"
+        [specialtyName]="especialidadSeleccionada?.name"
+        [selectedDate]="fechaSeleccionada"
+        (confirmRequested)="confirmarCita($event)"
+      >
+      </app-doctor-time-modal>
+    </ng-container>
+
+    <ng-container *ngIf="vistaActual === 'pagos'">
+      <app-payment-method
+        [appointmentData]="citaConfirmada"
+        (onBack)="vistaActual = 'agendamiento'"
+      >
+      </app-payment-method>
+    </ng-container>
+  </div>
+</div>

@@ -1,0 +1,18 @@
+.agenda-tabs {
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--surface-border);
+}
+
+:host ::ng-deep .p-datepicker {
+  width: 100%;
+}
+
+:host ::ng-deep .agenda-config-date.is-fuera {
+  background: var(--surface-200);
+  color: var(--text-color-secondary);
+}
+
+:host ::ng-deep .agenda-config-date.is-vacaciones {
+  background: var(--surface-hover);
+  color: var(--text-color);
+}
