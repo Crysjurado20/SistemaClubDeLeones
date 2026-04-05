@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export type LoginRequest = { correo: string; contrasena: string };
 
@@ -28,7 +29,7 @@ export type RegistroPacienteRequest = {
 })
 export class AuthApiService {
    http = inject(HttpClient);
-   apiUrl = 'https://localhost:7064/api/Auth'; 
+   apiUrl = environment.apiUrl + '/Auth';
 
   registrarPaciente(datosPaciente: RegistroPacienteRequest): Observable<{ mensaje: string }> {
     return this.http.post<{ mensaje: string }>(`${this.apiUrl}/registro/paciente`, datosPaciente);

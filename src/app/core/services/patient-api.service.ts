@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export type PatientSpecialtyOption = {
   idEspecialidad: number;
@@ -68,7 +69,7 @@ export type PatientInvoice = {
 @Injectable({ providedIn: 'root' })
 export class PatientApiService {
   private readonly http = inject(HttpClient);
-  private readonly apiBase = '/api/patient';
+  private readonly apiBase = environment.apiUrl + '/patient';
 
   getSpecialties(): Observable<PatientSpecialtyOption[]> {
     return this.http.get<PatientSpecialtyOption[]>(`${this.apiBase}/specialties`);

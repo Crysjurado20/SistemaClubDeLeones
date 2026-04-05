@@ -15,6 +15,7 @@ type JwtPayload = {
 function mapBackendRoleToAppRole(role: string): string {
   const normalized = role.trim().toUpperCase();
 
+
   if (normalized === 'ADMINISTRADOR') return 'ADMIN';
   if (normalized === 'MEDICO' || normalized === 'MÉDICO') return 'DOCTOR';
   if (normalized === 'PACIENTE') return 'PATIENT';
