@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export type DashboardKpis = {
   totalPatients: number;
@@ -23,7 +24,7 @@ export type DashboardResponse = {
 @Injectable({ providedIn: 'root' })
 export class DashboardApiService {
   private readonly http = inject(HttpClient);
-  private readonly apiBase = '/api';
+  private readonly apiBase = environment.apiUrl;
 
   getDashboard(): Observable<DashboardResponse> {
     return this.http.get<DashboardResponse>(`${this.apiBase}/admin/dashboard`);
