@@ -1,9 +1,24 @@
 <div class="flex flex-col min-h-screen bg-surface-50 dark:bg-surface-950">
   <app-header></app-header>
 
+  <p-toast position="top-right"></p-toast>
+  <app-loading-overlay [show]="isLoading()" />
+
   <div
     class="relative flex-1 flex items-center justify-center p-4 pt-16 md:p-8 md:pt-20 overflow-hidden"
   >
+    <div class="absolute left-4 top-4 z-20">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-arrow-left"
+        label="Regresar"
+        class="p-button-text p-button-secondary"
+        [disabled]="isLoading()"
+        routerLink="/landing"
+      ></button>
+    </div>
+
     <div aria-hidden="true" class="pointer-events-none absolute inset-0 z-0">
       <div
         class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"
@@ -68,8 +83,22 @@
               >
                 Cedula de Identidad: <span class="text-red-500 ml-1">*</span>
               </p-inputgroup-addon>
-              <input pInputText [(ngModel)]="usuario.cedula" type="text" />
+              <input
+                pInputText
+                [(ngModel)]="usuario.cedula"
+                name="cedula"
+                #cedulaModel="ngModel"
+                type="text"
+                required
+                pattern="^[0-9]+$"
+                minlength="6"
+              />
             </p-inputgroup>
+            <app-field-error
+              [control]="cedulaModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'La cédula es obligatoria.', pattern: 'La cédula debe contener solo números.', minlength: 'La cédula debe tener al menos 6 dígitos.' }"
+            />
           </div>
           <div class="hidden md:block"></div>
 
@@ -83,21 +112,31 @@
               <input
                 pInputText
                 [(ngModel)]="usuario.primerNombre"
+                name="primerNombre"
+                #primerNombreModel="ngModel"
                 placeholder="Primer Nombre"
                 type="text"
+                required
               />
             </p-inputgroup>
+            <app-field-error
+              [control]="primerNombreModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'El primer nombre es obligatorio.' }"
+            />
           </div>
           <div>
             <p-inputgroup>
               <p-inputgroup-addon
                 class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base"
               >
-                Segundo Nombre <span class="text-red-500 ml-1">*</span>
+                Segundo Nombre
               </p-inputgroup-addon>
               <input
                 pInputText
                 [(ngModel)]="usuario.segundoNombre"
+                name="segundoNombre"
+                #segundoNombreModel="ngModel"
                 placeholder="Segundo Nombre"
                 type="text"
               />
@@ -114,10 +153,18 @@
               <input
                 pInputText
                 [(ngModel)]="usuario.apellidoPaterno"
+                name="apellidoPaterno"
+                #apellidoPaternoModel="ngModel"
                 placeholder="Apellido Paterno"
                 type="text"
+                required
               />
             </p-inputgroup>
+            <app-field-error
+              [control]="apellidoPaternoModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'El apellido paterno es obligatorio.' }"
+            />
           </div>
           <div>
             <p-inputgroup>
@@ -129,10 +176,18 @@
               <input
                 pInputText
                 [(ngModel)]="usuario.apellidoMaterno"
+                name="apellidoMaterno"
+                #apellidoMaternoModel="ngModel"
                 placeholder="Apellido Materno"
                 type="text"
+                required
               />
             </p-inputgroup>
+            <app-field-error
+              [control]="apellidoMaternoModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'El apellido materno es obligatorio.' }"
+            />
           </div>
 
           <div>
@@ -144,10 +199,19 @@
               </p-inputgroup-addon>
               <p-datepicker
                 [(ngModel)]="usuario.fechaNacimiento"
+                name="fechaNacimiento"
+                #fechaNacimientoModel="ngModel"
                 [showIcon]="true"
+                [maxDate]="maxFechaNacimiento"
                 dateFormat="dd/mm/yy"
+                required
               ></p-datepicker>
             </p-inputgroup>
+            <app-field-error
+              [control]="fechaNacimientoModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'La fecha de nacimiento es obligatoria.' }"
+            />
           </div>
           <div>
             <p-inputgroup>
@@ -158,11 +222,19 @@
               </p-inputgroup-addon>
               <p-select
                 [(ngModel)]="usuario.genero"
+                name="genero"
+                #generoModel="ngModel"
                 [options]="opcionesGenero"
                 optionLabel="name"
                 placeholder="-- Seleccione --"
+                required
               ></p-select>
             </p-inputgroup>
+            <app-field-error
+              [control]="generoModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'El género es obligatorio.' }"
+            />
           </div>
 
           <div class="md:col-span-1">
@@ -175,10 +247,18 @@
               <input
                 pInputText
                 [(ngModel)]="usuario.direccion"
+                name="direccion"
+                #direccionModel="ngModel"
                 placeholder="Dirección"
                 type="text"
+                required
               />
             </p-inputgroup>
+            <app-field-error
+              [control]="direccionModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'La dirección es obligatoria.' }"
+            />
           </div>
           <div class="hidden md:block"></div>
 
@@ -189,8 +269,23 @@
               >
                 Teléfono Celular <i class="pi pi-mobile"></i> <span class="text-red-500">*</span>
               </p-inputgroup-addon>
-              <input pInputText [(ngModel)]="usuario.telefono" placeholder="Teléfono" type="text" />
+              <input
+                pInputText
+                [(ngModel)]="usuario.telefono"
+                name="telefono"
+                #telefonoModel="ngModel"
+                placeholder="Teléfono"
+                type="text"
+                required
+                pattern="^[0-9]+$"
+                minlength="7"
+              />
             </p-inputgroup>
+            <app-field-error
+              [control]="telefonoModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'El teléfono es obligatorio.', pattern: 'El teléfono debe contener solo números.', minlength: 'El teléfono debe tener al menos 7 dígitos.' }"
+            />
           </div>
           <div>
             <p-inputgroup>
@@ -203,10 +298,45 @@
               <input
                 pInputText
                 [(ngModel)]="usuario.correo"
+                name="correo"
+                #correoModel="ngModel"
                 placeholder="Ej. correo@dominio.com"
                 type="email"
+                required
+                email
               />
             </p-inputgroup>
+            <app-field-error
+              [control]="correoModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'El correo es obligatorio.', email: 'Ingresa un correo válido.' }"
+            />
+          </div>
+
+          <div>
+            <p-inputgroup>
+              <p-inputgroup-addon
+                class="w-40 sm:w-48 bg-surface-100 font-semibold justify-start text-sm md:text-base flex items-center gap-2"
+              >
+                Contraseña <i class="pi pi-lock"></i>
+                <span class="text-red-500">*</span>
+              </p-inputgroup-addon>
+              <p-password
+                [(ngModel)]="usuario.contrasena"
+                name="contrasena"
+                #contrasenaModel="ngModel"
+                placeholder="Contraseña"
+                [toggleMask]="true"
+                [feedback]="false"
+                [fluid]="true"
+                required
+              ></p-password>
+            </p-inputgroup>
+            <app-field-error
+              [control]="contrasenaModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'La contraseña es obligatoria.' }"
+            />
           </div>
         </div>
 
@@ -216,6 +346,9 @@
               [(ngModel)]="usuario.terminos"
               [binary]="true"
               inputId="terminos"
+              name="terminos"
+              #terminosModel="ngModel"
+              requiredTrue
             ></p-checkbox>
             <label
               for="terminos"
@@ -224,6 +357,13 @@
               Aceptar terminos y condiciones de politica y privacidad de los datos
               <span class="text-red-500">*</span>
             </label>
+          </div>
+          <div class="w-full sm:w-auto">
+            <app-field-error
+              [control]="terminosModel"
+              [submitted]="submitted()"
+              [messages]="{ requiredTrue: 'Debes aceptar los términos y condiciones.' }"
+            />
           </div>
           <a
             href="#"
@@ -235,13 +375,11 @@
 
         <div class="mt-8 flex justify-end gap-3">
           <p-button
-            label="Cancelar"
-            icon="pi pi-times"
-            severity="secondary"
-            [outlined]="true"
-            routerLink="/landing"
+            label="Registrarse"
+            icon="pi pi-save"
+            [disabled]="isLoading()"
+            (onClick)="registrar()"
           ></p-button>
-          <p-button label="Registrarse" icon="pi pi-save" (onClick)="registrar()"></p-button>
         </div>
       </p-fluid>
     </div>

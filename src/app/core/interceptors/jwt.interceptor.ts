@@ -25,6 +25,10 @@ function shouldSkipAuthHeader(req: HttpRequest<unknown>): boolean {
   return false;
 }
 
+function isAuthEndpoint(url: string): boolean {
+  return url.includes('/api/Auth/login') || url.includes('/api/Auth/registro');
+}
+
 export const jwtInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
@@ -41,8 +45,12 @@ export const jwtInterceptor: HttpInterceptorFn = (
     catchError((err: unknown) => {
       if (err instanceof HttpErrorResponse) {
         if (err.status === 401) {
-          for (const key of TOKEN_KEYS) localStorage.removeItem(key);
-          void router.navigate(['/auth/login']);
+          // No redirigir ni limpiar sesión cuando el 401 viene del propio login/registro
+          // (ej. credenciales incorrectas). La pantalla debe poder mostrar el error.
+          if (!isAuthEndpoint(req.url)) {
+            for (const key of TOKEN_KEYS) localStorage.removeItem(key);
+            void router.navigate(['/auth/login']);
+          }
         }
 
         if (err.status === 403) {

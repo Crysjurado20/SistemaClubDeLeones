@@ -1,4 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -7,8 +12,10 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { FluidModule } from 'primeng/fluid';
+import { finalize } from 'rxjs';
 import { GenericCrudComponent, TableColumn } from '../../../../shared/ui/crud/crud';
 import { PatientsApiService } from '../../services/patients-api.service';
+import { LoadingOverlay } from '../../../../shared/ui/loading-overlay/loading-overlay';
 
 @Component({
   selector: 'app-crud-patients',
@@ -22,11 +29,29 @@ import { PatientsApiService } from '../../services/patients-api.service';
     SelectModule,
     FluidModule,
     GenericCrudComponent,
+    LoadingOverlay,
 ],
   templateUrl: './crud-patients.html',
-  providers: [MessageService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CrudPatientsComponent implements OnInit {
+export class CrudPatientsComponent {
+  private loadingCount = 0;
+  get isLoading(): boolean {
+    return this.loadingCount > 0;
+  }
+
+  private startLoading(): void {
+    this.loadingCount++;
+    this.cdr.markForCheck();
+  }
+
+  private stopLoading(): void {
+    setTimeout(() => {
+      this.loadingCount = Math.max(0, this.loadingCount - 1);
+      this.cdr.markForCheck();
+    }, 0);
+  }
+
   columnasPacientes: TableColumn[] = [
     { field: 'cedula', header: 'Cédula', type: 'text' },
     { field: 'apellidos', header: 'Apellidos', type: 'text' },
@@ -50,20 +75,25 @@ export class CrudPatientsComponent implements OnInit {
   constructor(
     private readonly messageService: MessageService,
     private readonly patientsApi: PatientsApiService,
-  ) {}
-
-  ngOnInit() {
-    this.cargarPacientes();
+    private readonly cdr: ChangeDetectorRef,
+  ) {
+    afterNextRender(() => this.cargarPacientes());
   }
 
   private cargarPacientes(): void {
-    this.patientsApi.getAll().subscribe({
+    this.startLoading();
+    this.patientsApi
+      .getAll()
+      .pipe(finalize(() => this.stopLoading()))
+      .subscribe({
       next: (items) => {
         const list = Array.isArray(items) ? items : [];
         this.listaPacientes = list.map((p) => this.normalizePacienteForTable(p));
+        this.cdr.markForCheck();
       },
       error: () => {
         this.listaPacientes = [];
+        this.cdr.markForCheck();
       },
     });
   }
@@ -98,15 +128,21 @@ export class CrudPatientsComponent implements OnInit {
       correo: '',
     };
     this.mostrarModalDialog = true;
+    this.cdr.markForCheck();
   }
 
   abrirModalEditar(pacienteSeleccionado: any) {
     this.pacienteActual = structuredClone(pacienteSeleccionado);
     this.mostrarModalDialog = true;
+    this.cdr.markForCheck();
   }
 
   eliminarPaciente(pacienteSeleccionado: any) {
-    this.patientsApi.delete(pacienteSeleccionado.id).subscribe({
+    this.startLoading();
+    this.patientsApi
+      .delete(pacienteSeleccionado.id)
+      .pipe(finalize(() => this.stopLoading()))
+      .subscribe({
       next: () => {
         this.listaPacientes = this.listaPacientes.filter((pac) => pac.id !== pacienteSeleccionado.id);
         this.messageService.add({
@@ -114,6 +150,7 @@ export class CrudPatientsComponent implements OnInit {
           summary: 'Eliminado',
           detail: 'Paciente eliminado correctamente',
         });
+        this.cdr.markForCheck();
       },
       error: () => {
         this.messageService.add({
@@ -121,6 +158,7 @@ export class CrudPatientsComponent implements OnInit {
           summary: 'Error',
           detail: 'No se pudo eliminar el paciente',
         });
+        this.cdr.markForCheck();
       },
     });
   }
@@ -147,7 +185,11 @@ export class CrudPatientsComponent implements OnInit {
       `${this.pacienteActual.apellidoPaterno} ${this.pacienteActual.apellidoMaterno || ''}`.trim();
 
     if (this.pacienteActual.id) {
-      this.patientsApi.update(this.pacienteActual.id, this.pacienteActual).subscribe({
+      this.startLoading();
+      this.patientsApi
+        .update(this.pacienteActual.id, this.pacienteActual)
+        .pipe(finalize(() => this.stopLoading()))
+        .subscribe({
         next: () => {
           const index = this.listaPacientes.findIndex((p) => p.id === this.pacienteActual.id);
           if (index >= 0) this.listaPacientes[index] = this.pacienteActual;
@@ -160,6 +202,8 @@ export class CrudPatientsComponent implements OnInit {
             summary: 'Actualizado',
             detail: 'Datos del paciente actualizados correctamente',
           });
+
+          this.cdr.markForCheck();
         },
         error: () => {
           this.messageService.add({
@@ -167,10 +211,15 @@ export class CrudPatientsComponent implements OnInit {
             summary: 'Error',
             detail: 'No se pudo actualizar el paciente',
           });
+          this.cdr.markForCheck();
         },
       });
     } else {
-      this.patientsApi.create(this.pacienteActual).subscribe({
+      this.startLoading();
+      this.patientsApi
+        .create(this.pacienteActual)
+        .pipe(finalize(() => this.stopLoading()))
+        .subscribe({
         next: (created) => {
           this.listaPacientes.push(this.normalizePacienteForTable(created ?? this.pacienteActual));
           this.listaPacientes = [...this.listaPacientes];
@@ -181,6 +230,8 @@ export class CrudPatientsComponent implements OnInit {
             summary: 'Creado',
             detail: 'Paciente registrado exitosamente',
           });
+
+          this.cdr.markForCheck();
         },
         error: () => {
           this.messageService.add({
@@ -188,6 +239,7 @@ export class CrudPatientsComponent implements OnInit {
             summary: 'Error',
             detail: 'No se pudo registrar el paciente',
           });
+          this.cdr.markForCheck();
         },
       });
     }
@@ -195,5 +247,6 @@ export class CrudPatientsComponent implements OnInit {
 
   ocultarDialog() {
     this.mostrarModalDialog = false;
+    this.cdr.markForCheck();
   }
 }

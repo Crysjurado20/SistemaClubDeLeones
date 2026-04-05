@@ -1,4 +1,5 @@
 <div class="card">
+  <app-loading-overlay [show]="isLoading || busy"></app-loading-overlay>
   <div
     class="w-full bg-primary text-primary-contrast text-center font-semibold py-1 mb-4 rounded-none"
   >
@@ -20,6 +21,8 @@
             [(ngModel)]="dropdownValue"
             [options]="dropdownValues"
             optionLabel="name"
+            [filter]="true"
+            filterPlaceholder="Buscar especialidad..."
             placeholder="Seleccione .."
           />
         </p-inputgroup>

@@ -1,65 +1,148 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterLink } from '@angular/router'; // Importante para la redirección
+import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
+import { FluidModule } from 'primeng/fluid';
 import { CheckboxModule } from 'primeng/checkbox';
+import { PasswordModule } from 'primeng/password';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
-import { InputTextModule } from 'primeng/inputtext';
-import { PasswordModule } from 'primeng/password';
-import { RippleModule } from 'primeng/ripple';
-import { Header } from "../../../../shared/ui/header/header";
-import { AuthService } from '../../../../core/services/auth.service';
-
-type MockRole = 'ADMIN' | 'DOCTOR' | 'PATIENT';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { Header } from '../../../../shared/ui/header/header';
+import { LoadingOverlay } from '../../../../shared/ui/loading-overlay/loading-overlay';
+import { FieldError } from '../../../../shared/ui/field-error/field-error';
+import { AuthApiService } from '../../services/auth.service';
+import { AuthService as SessionAuthService } from '../../../../core/services/auth.service';
+import { finalize } from 'rxjs';
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [
-    FormsModule,
-    RouterModule,
-    ButtonModule,
-    CheckboxModule,
-    InputGroupModule,
-    InputGroupAddonModule,
-    InputTextModule,
-    PasswordModule,
-    RippleModule,
-    Header
-],
-  templateUrl: './login.html',
-  styleUrl: './login.scss',
+    selector: 'app-login',
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        RouterLink,
+        InputTextModule,
+        PasswordModule,
+        CheckboxModule,
+        InputGroupModule,
+        InputGroupAddonModule,
+        ButtonModule,
+        FluidModule,
+        ToastModule,
+        Header
+        ,
+        LoadingOverlay,
+        FieldError
+    ],
+    templateUrl: './login.html'
 })
 export class Login {
-  email: string = '';
+    
+     authApi = inject(AuthApiService);
+     sessionAuth = inject(SessionAuthService);
+     router = inject(Router);
+    messageService = inject(MessageService);
 
-  password: string = '';
+    checked = false;
+    isLoading = signal(false);
+    submitted = signal(false);
 
-  checked: boolean = false;
-
-  constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router,
-  ) {}
-
-  loginMock(role: MockRole): void {
-    const labelByRole: Record<MockRole, string> = {
-      ADMIN: 'Admin Demo',
-      DOCTOR: 'Juan Perez',
-      PATIENT: 'Maria Lopez',
+    credenciales = {
+        correo: '',
+        contrasena: ''
     };
 
-    this.authService.loginMock(role, labelByRole[role]);
+        private isValidEmail(value: string): boolean {
+            const v = (value ?? '').toString().trim();
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        }
 
-    const routeByRole: Record<MockRole, string> = {
-      ADMIN: '/reports-dashboard',
-      DOCTOR: '/weekly-agenda',
-      PATIENT: '/appointments',
-    };
+    iniciarSesion() {
+                if (this.isLoading()) {
+                    return;
+                }
+                this.submitted.set(true);
 
-    void this.router.navigateByUrl(routeByRole[role]);
-  }
+                if (!this.credenciales.correo || !this.credenciales.contrasena) {
+            this.messageService.clear();
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Atención',
+                            detail: 'Revisa los campos marcados e inténtalo de nuevo.',
+            });
+            return;
+        }
 
- 
+                if (!this.isValidEmail(this.credenciales.correo)) {
+                    this.messageService.clear();
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary: 'Atención',
+                        detail: 'Ingresa un correo válido.',
+                    });
+                    return;
+                }
+
+        this.isLoading.set(true);
+
+        this.authApi
+          .login(this.credenciales)
+                    .pipe(finalize(() => this.isLoading.set(false)))
+          .subscribe({
+            next: (respuesta) => {
+                                // Limpia cualquier sesión anterior (por ejemplo tokens viejos en access_token/jwt)
+                                // para evitar desincronización entre el JWT (guards/interceptor) y localStorage.usuario.
+                                this.sessionAuth.logout();
+
+                localStorage.setItem('token', respuesta.token);
+                localStorage.setItem('userLabel', respuesta.nombres);
+                                localStorage.setItem('usuario', JSON.stringify({
+                    idUsuario: respuesta.idUsuario,
+                    nombres: respuesta.nombres,
+                    rol: respuesta.rol
+                }));
+
+                                const rol = (respuesta.rol ?? '').toString().trim().toLowerCase();
+                                if (rol === 'administrador') {
+                                    void this.router.navigate(['/reports-dashboard']);
+                                    return;
+                                }
+                                if (rol === 'medico' || rol === 'médico') {
+                                    void this.router.navigate(['/weekly-agenda']);
+                                    return;
+                                }
+                                if (rol === 'paciente') {
+                                    void this.router.navigate(['/appointments']);
+                                    return;
+                                }
+
+                                void this.router.navigate(['/landing']);
+            },
+            error: (err) => {
+                console.error('Error en login:', err);
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'No se pudo iniciar sesión',
+                  detail: err.error?.mensaje || 'Credenciales incorrectas. Intenta de nuevo.',
+                });
+            }
+        });
+    }
+
+        loginMock(role: 'ADMIN' | 'DOCTOR' | 'PATIENT') {
+            this.sessionAuth.loginMock(role);
+            if (role === 'ADMIN') {
+                void this.router.navigate(['/reports-dashboard']);
+                return;
+            }
+            if (role === 'DOCTOR') {
+                void this.router.navigate(['/weekly-agenda']);
+                return;
+            }
+            void this.router.navigate(['/appointments']);
+        }
 }

@@ -28,3 +28,7 @@
 :host ::ng-deep .slot-empty-btn:hover {
 	background: var(--surface-hover);
 }
+
+:host ::ng-deep .weekly-turno-bloqueado {
+	opacity: 0.78;
+}

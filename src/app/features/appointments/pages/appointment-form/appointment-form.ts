@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { FieldsetModule } from 'primeng/fieldset';
 import { InputGroupModule } from 'primeng/inputgroup';
@@ -10,12 +11,15 @@ import { DrawerModule } from 'primeng/drawer';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { finalize } from 'rxjs';
 import { SelectorEspecialidadComponent } from './components/selector-especialidad/selector-especialidad';
 import { CalendarCustomComponent } from './components/calendar-custom/calendar-custom';
 import { DoctorTimeModal, AppointmentCheckoutData } from './components/doctor-time-modal/doctor-time-modal';
 import { PaymentMethodsComponent } from './components/payment-method/payment-method';
 import { Header } from "../../../../shared/ui/header/header";
 import { AuthService } from '../../../../core/services/auth.service';
+import { PatientApiService, PatientDoctorAvailability } from '../../../../core/services/patient-api.service';
+import { LoadingOverlay } from '../../../../shared/ui/loading-overlay/loading-overlay';
 
 @Component({
   selector: 'app-appointments-form',
@@ -35,9 +39,10 @@ import { AuthService } from '../../../../core/services/auth.service';
     InputGroupAddonModule,
     SelectModule,
     DrawerModule,
-    Header
+    Header,
+    LoadingOverlay
 ],
-  providers: [MessageService, ConfirmationService],
+  providers: [ConfirmationService],
   templateUrl: './appointment-form.html',
 })
 export class AppointmentsFormComponent {
@@ -45,8 +50,11 @@ export class AppointmentsFormComponent {
   
   constructor(
       private readonly authService: AuthService,
-      messageService: MessageService,
-      confirmationService: ConfirmationService,
+      private readonly patientApi: PatientApiService,
+      private readonly messageService: MessageService,
+      private readonly confirmationService: ConfirmationService,
+      private readonly cdr: ChangeDetectorRef,
+      private readonly router: Router,
   ) {
     this.userLabel = this.authService.getDisplayLabel();
   }
@@ -58,33 +66,149 @@ export class AppointmentsFormComponent {
   fechaSeleccionada: Date | null = null;
   citaConfirmada: AppointmentCheckoutData | null = null;
 
-  listaMedicos = [
-    {
-      id: 1,
-      nombre: 'Astudillo Silva Marcia Andrea',
-      precio: '12.00',
-      dias: 'Martes Jueves Viernes Sabado',
-      horarios: [
-        { id: 101, hora: '08:00', estado: 'disponible', seleccionado: false },
-        { id: 103, hora: '09:00', estado: 'ocupado', seleccionado: false },
-      ],
-    },
-  ];
+  cargandoDisponibilidad: boolean = false;
+  agendando: boolean = false;
+  cargandoCalendario: boolean = false;
+  mostrandoCalendario: boolean = false;
+
+  listaMedicos: Array<PatientDoctorAvailability & { horarios: Array<any> }> = [];
 
   recibirEspecialidad(especialidad: any) {
     this.especialidadSeleccionada = especialidad;
-    console.log('Especialidad elegida:', especialidad);
+    this.mostrandoCalendario = true;
+    // Mostrar overlay inmediatamente para mejorar UX hasta que el calendario reporte loading=false
+    this.cargandoCalendario = true;
+    this.cdr.markForCheck();
+  }
+
+  onCalendarioLoadingChange(loading: boolean) {
+    this.cargandoCalendario = loading;
+    this.cdr.markForCheck();
   }
 
   abrirModalDoctores(fecha: Date) {
+    if (!this.especialidadSeleccionada?.idEspecialidad) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: 'Primero selecciona una especialidad.',
+      });
+      return;
+    }
+
     this.fechaSeleccionada = fecha;
-    this.mostrarModal = true;
+    this.cargandoDisponibilidad = true;
+    this.listaMedicos = [];
+    this.cdr.markForCheck();
+
+    const fechaStr = this.formatLocalDateYMD(fecha);
+    const idEspecialidad = this.especialidadSeleccionada.idEspecialidad as number;
+
+    this.patientApi
+      .getAvailability(idEspecialidad, fechaStr)
+      .pipe(
+        finalize(() => {
+          this.cargandoDisponibilidad = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (items) => {
+          this.listaMedicos = (items ?? []).map((m) => ({
+            ...m,
+            horarios: (m.horarios ?? []).map((h: any) => ({ ...h, seleccionado: false })),
+          }));
+          this.mostrarModal = true;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error cargando disponibilidad:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'No se pudo cargar disponibilidad',
+            detail: 'Intenta nuevamente.',
+          });
+        },
+      });
   }
 
   confirmarCita(datosCita: AppointmentCheckoutData) {
     this.mostrarModal = false;
     this.citaConfirmada = datosCita;
     this.vistaActual = 'pagos';
+  }
+
+  pagarYAgendar(metodoPago: string) {
+    if (this.agendando) return;
+
+    const idPaciente = this.authService.getUserId();
+    const fecha = this.fechaSeleccionada;
+    const cita = this.citaConfirmada;
+    const idEspecialidad = this.especialidadSeleccionada?.idEspecialidad as number | undefined;
+
+    if (!idPaciente || !fecha || !cita || !idEspecialidad) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: 'Faltan datos para agendar la cita.',
+      });
+      return;
+    }
+
+    const idMedico = cita.doctor?.id as number | undefined;
+    const hora = cita.timeSlot?.hora as string | undefined;
+    if (!idMedico || !hora) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: 'Selecciona un turno válido.',
+      });
+      return;
+    }
+
+    this.agendando = true;
+    this.cdr.markForCheck();
+
+    this.patientApi
+      .createAppointment({
+        idPaciente,
+        idMedico,
+        idEspecialidad,
+        fecha: this.formatLocalDateYMD(fecha),
+        hora,
+        metodoPago,
+      })
+      .pipe(
+        finalize(() => {
+          this.agendando = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (res) => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Cita agendada',
+            detail: res?.mensaje ?? 'Cita agendada correctamente.',
+          });
+          void this.router.navigate(['/appointment-list']);
+        },
+        error: (err) => {
+          console.error('Error creando cita:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'No se pudo agendar',
+            detail: err?.error?.mensaje || 'Intenta nuevamente.',
+          });
+        },
+      });
+  }
+
+  private formatLocalDateYMD(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   

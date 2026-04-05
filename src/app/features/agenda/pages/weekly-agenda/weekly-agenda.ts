@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 
+import { MessageService } from 'primeng/api';
+
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -23,7 +25,11 @@ import { Header as AppHeader } from '../../../../shared/ui/header/header';
 import { Docente, EstadoTurno, Turno } from '../../../doctors/models/docente.model';
 
 import { AgendaConfigService } from '../../services/agenda-config.service';
+import { AgendaHorarioDiaConfig } from '../../models/agenda-config.model';
 import { PdfService } from '../../../invoices/services/pdf.service';
+import { AdminApiService } from '../../../../core/services/admin-api.service';
+import { DoctorApiService, DoctorWeekAppointment } from '../../../../core/services/doctor-api.service';
+import { PatientApiService } from '../../../../core/services/patient-api.service';
 import QRCode from 'qrcode';
 
 interface DiaSemana {
@@ -65,6 +71,7 @@ const HORAS = [
   '17:00',
   '18:00',
 ];
+const SLOT_MINUTES = 30;
 const DIAS_NOMBRES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const DIAS_COMPLETOS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -104,6 +111,9 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
   slots: SlotHora[] = [];
   inicioSemana: Date = new Date();
 
+  // Selector de mes (YYYY-MM)
+  mesSeleccionado: string = '';
+
   // Crear cita
   mostrarNuevaCita = false;
   slotSeleccionado: { fecha: Date; hora: string } | null = null;
@@ -119,12 +129,20 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
   metodoPagoSeleccionado: MetodoPago | null = null;
   qrDataUrl: string | null = null;
 
+  // Solo informativo cuando se reagenda (la especialidad real se infiere por horario)
+  especialidadReagendarNombre: string | null = null;
+
   get headerUserLabel(): string {
     return this.authService.getDisplayLabel();
   }
 
+  getDoctorSeleccionadoLabel(): string {
+    const found = this.doctoresOptions.find((d) => d.value === this.doctorSeleccionado);
+    return (found?.label ?? '').trim();
+  }
+
   doctorSeleccionado: number | null = 1;
-  especialidadSeleccionada: string | null = null;
+  especialidadSeleccionada: number | null = null;
 
   readonly metodoPagoOptions: SelectOption<MetodoPago>[] = [
     { label: 'Efectivo', value: 'efectivo' },
@@ -132,40 +150,14 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
     { label: 'Depósito / Transferencia', value: 'transferencia' },
   ];
 
-  readonly doctoresOptions: Array<{ label: string; value: number; especialidades: SelectOption<string>[] }> = [
-    {
-      label: 'Dr. Astudillo Silva Marcia Andrea',
-      value: 1,
-      especialidades: [
-        { label: 'Cirugía Maxilofacial', value: 'CM' },
-        { label: 'Odontología General', value: 'OD' },
-      ],
-    },
-  ];
+  doctoresOptions: Array<{ label: string; value: number; especialidades: SelectOption<number>[] }> = [];
 
-  get especialidadOptions(): SelectOption<string>[] {
+  get especialidadOptions(): SelectOption<number>[] {
     const doc = this.doctoresOptions.find((d) => d.value === this.doctorSeleccionado);
     return doc?.especialidades ?? [];
   }
 
-  readonly pacientesOptions: PacienteOption[] = [
-    {
-      id: 1,
-      cedula: '1723456789',
-      nombres: 'María Andrea',
-      apellidos: 'Astudillo Silva',
-      hc: 'HC-0001',
-      label: '1723456789 · Astudillo Silva María Andrea · HC-0001',
-    },
-    {
-      id: 2,
-      cedula: '1801122334',
-      nombres: 'Juan',
-      apellidos: 'Pérez',
-      hc: 'HC-0002',
-      label: '1801122334 · Pérez Juan · HC-0002',
-    },
-  ];
+  pacientesOptions: PacienteOption[] = [];
 
   readonly navTabs = [
     { label: 'Agenda semanal', icon: 'pi pi-calendar', value: 'agenda', link: '/weekly-agenda' },
@@ -183,19 +175,41 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
   mostrarDetalle = false;
   turnoSeleccionado: Turno | null = null;
 
+  private notifiedLoadError = false;
+
   get labelSemana(): string {
+    const offsets = this.getVisibleDayOffsets();
+    const lastOffset = offsets.at(-1) ?? 4;
     const fin = new Date(this.inicioSemana);
-    fin.setDate(fin.getDate() + 4); 
+    fin.setDate(fin.getDate() + lastOffset);
     const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
     return `${this.inicioSemana.toLocaleDateString('es-ES', opts)} – ${fin.toLocaleDateString('es-ES', opts)} ${fin.getFullYear()}`;
+  }
+
+  get gridTemplateColumns(): string {
+    return `54px repeat(${this.diasSemana.length || 5}, 1fr)`;
   }
 
   ngOnInit(): void {
     this.syncActiveTabWithUrl();
     this.irAHoy();
 
-    this.doctorSeleccionado = this.doctoresOptions[0]?.value ?? null;
-    this.especialidadSeleccionada = this.especialidadOptions[0]?.value ?? null;
+    const idMedico = this.authService.getUserId();
+    this.doctorSeleccionado = idMedico;
+
+    if (idMedico) {
+      this.doctoresOptions = [
+        {
+          label: this.authService.getDisplayLabel().split('·')[0]?.trim() || 'Doctor',
+          value: idMedico,
+          especialidades: [],
+        },
+      ];
+      this.loadAgendaConfig(idMedico);
+      this.loadSpecialties(idMedico);
+      this.loadPatients();
+      this.loadWeekAppointments(idMedico);
+    }
   }
 
   ngOnChanges(): void {
@@ -207,24 +221,35 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
     const lunes = new Date(hoy);
     lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
     lunes.setHours(0, 0, 0, 0);
-    this.inicioSemana = lunes;
-    this.buildDias();
-    this.buildSlots();
+    this.setInicioSemana(lunes);
   }
 
   semanaAnterior(): void {
-    this.inicioSemana = new Date(this.inicioSemana.getTime() - 7 * 86400000);
-    this.buildDias();
+    const target = new Date(this.inicioSemana.getTime() - 7 * 86400000);
+    this.setInicioSemana(target);
   }
 
   semanaSiguiente(): void {
-    this.inicioSemana = new Date(this.inicioSemana.getTime() + 7 * 86400000);
-    this.buildDias();
+    const target = new Date(this.inicioSemana.getTime() + 7 * 86400000);
+    this.setInicioSemana(target);
+  }
+
+  onMesChange(value: string | null | undefined): void {
+    const key = (value ?? '').toString().trim();
+    const parsed = this.parseMonthKey(key);
+    if (!parsed) return;
+
+    const firstDay = new Date(parsed.year, parsed.monthIndex, 1);
+    const lunes = new Date(firstDay);
+    lunes.setDate(firstDay.getDate() - ((firstDay.getDay() + 6) % 7));
+    lunes.setHours(0, 0, 0, 0);
+    this.setInicioSemana(lunes);
   }
 
   buildDias(): void {
     const hoy = new Date().toDateString();
-    this.diasSemana = Array.from({ length: 5 }, (_, i) => {
+    const offsets = this.getVisibleDayOffsets();
+    this.diasSemana = offsets.map((i) => {
       const fecha = new Date(this.inicioSemana.getTime() + i * 86400000);
       return {
         nombre: DIAS_COMPLETOS[fecha.getDay()],
@@ -233,6 +258,20 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
         esHoy: fecha.toDateString() === hoy,
       };
     });
+  }
+
+  private getVisibleDayOffsets(): number[] {
+    // Base: Lun–Vie. Sáb/Dom solo si están activos en la configuración.
+    const base = [0, 1, 2, 3, 4];
+    const config = this.agendaConfigService.state().horarioSemana ?? [];
+
+    const sabActivo = !!config.find((d) => d.key === 'sab')?.activo;
+    const domActivo = !!config.find((d) => d.key === 'dom')?.activo;
+
+    if (sabActivo) base.push(5);
+    if (domActivo) base.push(6);
+
+    return base;
   }
 
   get doctorNombre(): string {
@@ -258,13 +297,35 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
   }
 
   buildSlots(): void {
-    const horas = this.getHorasDesdeConfiguracion();
+    const horas = this.getHorasVisiblesSemana();
     this.slots = horas.map((hora) => ({ hora, turnos: [] }));
   }
 
-  getTurnosEnSlot(fecha: Date, hora: string): Turno[] {
+  onEspecialidadHeaderChange(): void {
+    // Re-pinta la grilla usando el filtro actual (sin re-consultar API)
+    this.buildSlots();
+  }
+
+  private getEspecialidadSeleccionadaNombre(): string | null {
+    if (!this.especialidadSeleccionada) return null;
+    const found = this.especialidadOptions.find((e) => e.value === this.especialidadSeleccionada);
+    const label = (found?.label ?? '').trim();
+    return label || null;
+  }
+
+  getTurnosEnSlotAll(fecha: Date, hora: string): Turno[] {
     return this.turnos.filter(
       (t) => new Date(t.fecha).toDateString() === fecha.toDateString() && t.horaInicio === hora,
+    );
+  }
+
+  getTurnosEnSlot(fecha: Date, hora: string): Turno[] {
+    const filtroEspecialidad = this.getEspecialidadSeleccionadaNombre();
+    return this.turnos.filter(
+      (t) =>
+        new Date(t.fecha).toDateString() === fecha.toDateString() &&
+        t.horaInicio === hora &&
+        (!filtroEspecialidad || (t.especialidad ?? '').trim() === filtroEspecialidad),
     );
   }
 
@@ -275,34 +336,76 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
 
   isSlotDisponible(fecha: Date, hora: string): boolean {
     if (!this.isSlotEnHorario(fecha, hora)) return false;
-    return this.getTurnosEnSlot(fecha, hora).length === 0;
+    return this.getTurnosEnSlotAll(fecha, hora).length === 0;
   }
 
   getClaseCelda(fecha: Date, hora: string): string {
-    if (this.getTurnosEnSlot(fecha, hora).length > 0) return '';
-    return this.isSlotEnHorario(fecha, hora) ? 'slot-disponible' : 'slot-no-disponible';
+    if (this.getTurnosEnSlotAll(fecha, hora).length > 0) return '';
+    return this.isSlotDisponible(fecha, hora) ? 'bg-primary-50/40 dark:bg-primary-950/20' : '';
   }
 
   private isSlotEnHorario(fecha: Date, hora: string): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const day = new Date(fecha);
+    day.setHours(0, 0, 0, 0);
+    if (day.getTime() < today.getTime()) return false;
+
     if (this.agendaConfigService.isDateBlocked(fecha)) return false;
 
-    const horario = this.getHorarioDia(fecha);
-    if (!horario?.activo || !horario.inicio || !horario.fin) return false;
-
-    const inicio = this.toMinutes(horario.inicio);
-    const fin = this.toMinutes(horario.fin);
-    const h = this.toMinutes(hora);
-
-    // slot de 60 min
-    if (h < inicio) return false;
-    if (h + 60 > fin) return false;
-    return true;
+    const allowed = this.getSlotsPermitidosDia(fecha);
+    return allowed.includes(hora);
   }
 
-  private getHorarioDia(date: Date): { activo: boolean; inicio: string | null; fin: string | null } | null {
+  private getHorarioDia(date: Date): AgendaHorarioDiaConfig | null {
     const key = this.diaKey(date);
     const horario = this.agendaConfigService.state().horarioSemana.find((d) => d.key === key);
     return horario ?? null;
+  }
+
+  private getSlotsPermitidosDia(date: Date): string[] {
+    const horario = this.getHorarioDia(date);
+    if (!horario?.activo || !horario.inicio || !horario.fin) return [];
+
+    const generated = this.generarSlotsHorario(horario);
+    if (!generated.length) return [];
+
+    // Si no está configurado aún, asumimos todos los slots generados activos.
+    if (horario.turnosActivos === undefined) return generated;
+
+    const active = horario.turnosActivos ?? [];
+    return active.filter((t) => generated.includes(t));
+  }
+
+  private getDuracionDia(date: Date): number {
+    const horario = this.getHorarioDia(date);
+    return horario?.duracionTurnoMinutos ?? SLOT_MINUTES;
+  }
+
+  private generarSlotsHorario(horario: { inicio: string | null; fin: string | null; duracionTurnoMinutos?: number }): string[] {
+    if (!horario.inicio || !horario.fin) return [];
+
+    const dur = horario.duracionTurnoMinutos ?? SLOT_MINUTES;
+    const inicio = this.toMinutes(horario.inicio);
+    const fin = this.toMinutes(horario.fin);
+
+    const lunchStart = 13 * 60;
+    const lunchEnd = 14 * 60;
+
+    const result: string[] = [];
+    for (let m = inicio; m + dur <= fin; m += dur) {
+      const slotEnd = m + dur;
+      if (m < lunchEnd && slotEnd > lunchStart) continue;
+      result.push(this.toTime(m));
+    }
+
+    return result;
+  }
+
+  isDiaBloqueado(date: Date): boolean {
+    const day = new Date(date);
+    day.setHours(0, 0, 0, 0);
+    return this.agendaConfigService.isDateBlocked(day);
   }
 
   private diaKey(date: Date): 'dom' | 'lun' | 'mar' | 'mie' | 'jue' | 'vie' | 'sab' {
@@ -319,21 +422,40 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
   }
 
   private getHorasDesdeConfiguracion(): string[] {
-    const horarios = this.agendaConfigService
-      .state()
-      .horarioSemana.filter((h) => h.activo && !!h.inicio && !!h.fin);
+    const horarios = this.agendaConfigService.state().horarioSemana;
+    const minutes = new Set<number>();
 
-    if (!horarios.length) return HORAS;
-
-    const minInicio = Math.min(...horarios.map((h) => this.toMinutes(h.inicio || '00:00')));
-    const maxFin = Math.max(...horarios.map((h) => this.toMinutes(h.fin || '00:00')));
-
-    const result: string[] = [];
-    for (let minutes = minInicio; minutes + 60 <= maxFin; minutes += 60) {
-      result.push(this.toTime(minutes));
+    for (const h of horarios) {
+      if (!h.activo || !h.inicio || !h.fin) continue;
+      const generated = this.generarSlotsHorario(h);
+      const allowed = h.turnosActivos === undefined ? generated : (h.turnosActivos ?? []).filter((t) => generated.includes(t));
+      for (const s of allowed) minutes.add(this.toMinutes(s));
     }
 
-    return result.length ? result : HORAS;
+    const sorted = [...minutes].sort((a, b) => a - b);
+    const horas = sorted.map((m) => this.toTime(m));
+    return horas.length ? horas : HORAS;
+  }
+
+  private getHorasVisiblesSemana(): string[] {
+    const minutes = new Set<number>();
+
+    // Horarios configurados (sin considerar "pasado")
+    for (const dia of this.diasSemana) {
+      for (const slot of this.getSlotsPermitidosDia(dia.fecha)) {
+        minutes.add(this.toMinutes(slot));
+      }
+    }
+
+    // Incluye horas con turnos ya agendados (por si hay algo fuera del rango actual)
+    for (const t of this.turnos ?? []) {
+      const m = this.toMinutes(t.horaInicio);
+      if (Number.isFinite(m)) minutes.add(m);
+    }
+
+    const sorted = [...minutes].sort((a, b) => a - b);
+    const horas = sorted.map((m) => this.toTime(m));
+    return horas.length ? horas : this.getHorasDesdeConfiguracion();
   }
 
   private toMinutes(hhmm: string): number {
@@ -358,8 +480,8 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
     this.qrDataUrl = null;
 
     // defaults
-    this.doctorSeleccionado = this.doctoresOptions[0]?.value ?? null;
-    this.especialidadSeleccionada = this.especialidadOptions[0]?.value ?? null;
+    if (!this.doctorSeleccionado) this.doctorSeleccionado = this.doctoresOptions[0]?.value ?? null;
+    if (!this.especialidadSeleccionada) this.especialidadSeleccionada = this.especialidadOptions[0]?.value ?? null;
 
     this.mostrarNuevaCita = true;
   }
@@ -372,26 +494,75 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
   confirmarTurnoPagado(): void {
     if (!this.turnoAcciones) return;
 
-    const id = this.turnoAcciones.id;
-    this.turnos = this.turnos.map((t) => (t.id === id ? { ...t, estado: 'ocupado' } : t));
-    this.mostrarAccionesCita = false;
+    if (this.turnoAcciones.estado !== 'pendiente_pago') {
+      this.mostrarAccionesCita = false;
+      return;
+    }
+
+    const idMedico = this.doctorSeleccionado ?? this.authService.getUserId();
+    if (!idMedico) return;
+
+    const idCita = this.turnoAcciones.id;
+    this.doctorApi.confirmPayment(idCita, { idMedico }).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Pago confirmado. Cita confirmada.' });
+        this.mostrarAccionesCita = false;
+        this.turnoAcciones = null;
+        this.loadWeekAppointments(idMedico);
+      },
+      error: (err) => {
+        const mensaje = err?.error?.mensaje ?? 'No se pudo confirmar el pago.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: mensaje });
+      },
+    });
   }
 
   cancelarCita(): void {
     if (!this.turnoAcciones) return;
 
     const id = this.turnoAcciones.id;
-    this.turnos = this.turnos.filter((t) => t.id !== id);
+    // Solo UI: si se cancela desde otra pantalla, se pintará rojo al recargar.
+    this.turnos = this.turnos.map((t) => (t.id === id ? { ...t, estado: 'cancelado' } : t));
+    this.turnoAcciones = null;
     this.mostrarAccionesCita = false;
   }
 
   reagendarCita(): void {
     if (!this.turnoAcciones) return;
 
+    if (this.turnoAcciones.estado === 'pendiente_pago') {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Pendiente de pago',
+        detail: 'Primero confirme el pago para poder reagendar la cita.',
+      });
+      return;
+    }
+
+    if (this.turnoAcciones.estado === 'atendido') {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Cita atendida',
+        detail: 'No se puede reagendar una cita que ya fue atendida.',
+      });
+      return;
+    }
+
     const turno = this.turnoAcciones;
     this.modoReagendar = true;
 
     this.slotReagendarOpciones = this.getSlotsDisponiblesSemana(turno.id);
+
+    if (!this.slotReagendarOpciones.length) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sin disponibilidad',
+        detail: 'No hay turnos disponibles para reagendar en la agenda visible.',
+      });
+      this.modoReagendar = false;
+      return;
+    }
+
     const currentValue = this.toSlotValue(turno.fecha, turno.horaInicio);
     this.slotReagendarSeleccionado = this.slotReagendarOpciones.some((o) => o.value === currentValue)
       ? currentValue
@@ -400,13 +571,15 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
     const paciente = this.pacientesOptions.find((p) => p.id === turno.paciente?.id) ?? null;
     this.pacienteSeleccionado = paciente;
 
+    this.especialidadReagendarNombre = (turno.especialidad ?? '').trim() || null;
+
     // El modelo Turno no guarda método de pago; se selecciona nuevamente en el modal
     this.metodoPagoSeleccionado = null;
     this.qrDataUrl = null;
 
     // Defaults
-    this.doctorSeleccionado = this.doctoresOptions[0]?.value ?? null;
-    this.especialidadSeleccionada = this.especialidadOptions[0]?.value ?? null;
+    if (!this.doctorSeleccionado) this.doctorSeleccionado = this.doctoresOptions[0]?.value ?? null;
+    if (!this.especialidadSeleccionada) this.especialidadSeleccionada = this.especialidadOptions[0]?.value ?? null;
 
     // Reutiliza el mismo modal; el horario se elige en un select
     this.slotSeleccionado = { fecha: new Date(turno.fecha), hora: turno.horaInicio };
@@ -416,6 +589,8 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
   }
 
   cerrarNuevaCita(): void {
+    const wasReagendar = this.modoReagendar;
+
     this.mostrarNuevaCita = false;
     this.slotSeleccionado = null;
 
@@ -426,6 +601,16 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
     this.pacienteSeleccionado = null;
     this.metodoPagoSeleccionado = null;
     this.qrDataUrl = null;
+
+    this.especialidadReagendarNombre = null;
+
+    if (wasReagendar) this.turnoAcciones = null;
+  }
+
+  onAccionesHide(): void {
+    // Si estamos pasando al flujo de reagendar, no limpiar el turno objetivo.
+    if (this.modoReagendar) return;
+    this.turnoAcciones = null;
   }
 
   onDoctorChange(): void {
@@ -482,7 +667,6 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
   crearCita(): void {
     if (!this.pacienteSeleccionado) return;
     const pacienteSeleccionado = this.pacienteSeleccionado;
-    if (!this.metodoPagoSeleccionado) return;
 
     if (this.modoReagendar) {
       if (!this.turnoAcciones) return;
@@ -492,58 +676,187 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
       if (!parsed) return;
 
       const { fecha, hora } = parsed;
-      const horaInicio = hora;
-      const horaFin = this.toTime(this.toMinutes(horaInicio) + 60);
 
-      const id = this.turnoAcciones.id;
-      this.turnos = this.turnos.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              fecha,
-              horaInicio,
-              horaFin,
-              paciente: {
-                id: pacienteSeleccionado.id,
-                nombre: pacienteSeleccionado.nombres,
-                apellido: pacienteSeleccionado.apellidos,
-                hc: pacienteSeleccionado.hc,
-              },
-            }
-          : t,
-      );
+      const idMedico = this.doctorSeleccionado ?? this.authService.getUserId();
+      if (!idMedico) return;
 
-      this.turnoAcciones = null;
-      this.cerrarNuevaCita();
+      const idCita = this.turnoAcciones.id;
+
+      this.doctorApi
+        .rescheduleAppointment(idCita, {
+          idMedico,
+          fecha: this.toLocalDateKey(fecha),
+          hora,
+        })
+        .subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Éxito',
+              detail: 'Cita reagendada correctamente.',
+            });
+            this.turnoAcciones = null;
+            this.cerrarNuevaCita();
+            this.loadWeekAppointments(idMedico);
+          },
+          error: (err) => {
+            const mensaje = err?.error?.mensaje ?? 'No se pudo reagendar la cita.';
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: mensaje });
+          },
+        });
       return;
     }
 
     if (!this.slotSeleccionado) return;
     if (!this.doctorSeleccionado || !this.especialidadSeleccionada) return;
 
-    const fecha = new Date(this.slotSeleccionado.fecha);
     const horaInicio = this.slotSeleccionado.hora;
-    const horaFin = this.toTime(this.toMinutes(horaInicio) + 60);
+    const fechaKey = this.toLocalDateKey(this.slotSeleccionado.fecha);
 
-    const nuevo: Turno = {
-      id: Date.now(),
-      fecha,
-      horaInicio,
-      horaFin,
-      duracionMin: 60,
-      estado: 'pendiente',
-      tipo: 'consulta',
-      paciente: {
-        id: this.pacienteSeleccionado.id,
-        nombre: this.pacienteSeleccionado.nombres,
-        apellido: this.pacienteSeleccionado.apellidos,
-        hc: this.pacienteSeleccionado.hc,
+    this.patientApi
+      .createAppointment({
+        idPaciente: pacienteSeleccionado.id,
+        idMedico: this.doctorSeleccionado,
+        idEspecialidad: this.especialidadSeleccionada,
+        creadaPorMedico: true,
+        fecha: fechaKey,
+        hora: horaInicio,
+        metodoPago: this.metodoPagoSeleccionado,
+        observacion: 'Control',
+      })
+      .subscribe({
+        next: (res) => {
+          this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cita creada correctamente.' });
+          this.cerrarNuevaCita();
+          if (this.doctorSeleccionado) this.loadWeekAppointments(this.doctorSeleccionado);
+        },
+        error: (err) => {
+          const mensaje = err?.error?.mensaje ?? 'No se pudo crear la cita.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: mensaje });
+        },
+      });
+  }
+
+  private loadAgendaConfig(idMedico: number): void {
+    this.doctorApi.getAgendaConfig(idMedico).subscribe({
+      next: (dto) => {
+        this.agendaConfigService.save({
+          horarioSemana: dto.horarioSemana.map((d) => ({
+            key: d.key,
+            label: d.label,
+            activo: d.activo,
+            inicio: d.inicio,
+            fin: d.fin,
+            duracionTurnoMinutos: d.duracionTurnoMinutos ?? 30,
+            turnosActivos: d.turnosActivos,
+          })),
+          bloqueos: dto.bloqueos ?? {},
+        });
+        this.buildDias();
+        this.buildSlots();
       },
-      motivo: 'Cita creada por médico',
-    };
+      error: () => {
+        // silencioso: usa defaults locales
+      },
+    });
+  }
 
-    this.turnos = [...this.turnos, nuevo];
-    this.cerrarNuevaCita();
+  private loadSpecialties(idMedico: number): void {
+    this.doctorApi.getSpecialties(idMedico).subscribe({
+      next: (items) => {
+        const options = (items ?? [])
+          .filter((x) => !!x?.idEspecialidad)
+          .map((x) => ({ label: x.nombre, value: x.idEspecialidad }));
+
+        if (this.doctoresOptions.length) {
+          this.doctoresOptions = [{ ...this.doctoresOptions[0], especialidades: options }];
+        }
+
+        if (!this.especialidadSeleccionada || !options.some((o) => o.value === this.especialidadSeleccionada)) {
+          this.especialidadSeleccionada = options[0]?.value ?? null;
+        }
+      },
+      error: (err) => {
+        if (!this.notifiedLoadError) {
+          const mensaje = err?.error?.mensaje ?? 'No se pudieron cargar las especialidades del doctor.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: mensaje });
+          this.notifiedLoadError = true;
+        }
+      },
+    });
+  }
+
+  private loadPatients(): void {
+    this.adminApi.getPatients().subscribe({
+      next: (items) => {
+        this.pacientesOptions = (items ?? []).map((p) => {
+          const hc = this.buildHistoriaClinica(p.id);
+          return {
+            id: p.id,
+            cedula: p.cedula,
+            nombres: p.nombres,
+            apellidos: p.apellidos,
+            hc,
+            label: `${p.cedula} · ${p.apellidos} ${p.nombres} · ${hc}`.trim(),
+          };
+        });
+      },
+      error: () => {
+        // mantiene vacío
+      },
+    });
+  }
+
+  private loadWeekAppointments(idMedico: number): void {
+    const start = this.toLocalDateKey(this.inicioSemana);
+    this.doctorApi.getWeekAppointments(idMedico, start).subscribe({
+      next: (items) => {
+        this.turnos = (items ?? []).map((t) => this.mapWeekDtoToTurno(t));
+      },
+      error: (err) => {
+        this.turnos = [];
+
+        if (!this.notifiedLoadError) {
+          const mensaje = err?.error?.mensaje ?? 'No se pudieron cargar los turnos de la semana.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: mensaje });
+          this.notifiedLoadError = true;
+        }
+      },
+    });
+  }
+
+  private mapWeekDtoToTurno(dto: DoctorWeekAppointment): Turno {
+    const fecha = this.parseLocalDateKey(dto.fecha) ?? new Date(dto.fecha);
+
+    const duracion = this.getDuracionDia(fecha);
+
+    const paciente = dto.paciente
+      ? {
+          id: dto.paciente.id,
+          nombre: dto.paciente.nombres,
+          apellido: dto.paciente.apellidos,
+          hc: this.buildHistoriaClinica(dto.paciente.id),
+        }
+      : undefined;
+
+    return {
+      id: dto.idCita,
+      fecha,
+      horaInicio: dto.horaInicio,
+      horaFin: dto.horaFin || this.toTime(this.toMinutes(dto.horaInicio) + duracion),
+      duracionMin: duracion,
+      estado: dto.estado,
+      especialidad: (dto.especialidad ?? '').trim() || undefined,
+      tipoConsulta: (dto.tipoConsulta ?? '').trim() || undefined,
+      tipo: 'consulta',
+      paciente,
+      notas: dto.observacion || undefined,
+      motivo: paciente ? undefined : 'Sin paciente',
+    };
+  }
+
+  private buildHistoriaClinica(idPaciente: number): string {
+    return `HC-${String(idPaciente).padStart(4, '0')}`;
   }
 
   private buildQrPayload(): string {
@@ -582,8 +895,10 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
     const map: Record<EstadoTurno, string> = {
       atendido: 'bg-teal-50 border-teal-500 text-teal-800',
       pendiente: 'bg-blue-50 border-blue-500 text-blue-800',
+      pendiente_pago: 'bg-surface-50 border-surface-500 text-surface-800',
       ocupado: 'bg-orange-50 border-orange-400 text-orange-800',
       bloqueado: 'bg-gray-100 border-gray-400 text-gray-600',
+      cancelado: 'bg-red-50 border-red-500 text-red-800',
     };
     return map[estado] || 'bg-blue-50 border-blue-500 text-blue-800';
   }
@@ -598,9 +913,11 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
   getLabelEstado(estado: EstadoTurno): string {
     const map: Record<EstadoTurno, string> = {
       atendido: 'Atendido',
-      pendiente: 'Pendiente',
+      pendiente: 'Pendiente de atención',
+      pendiente_pago: 'Pendiente pago',
       ocupado: 'Ocupado',
       bloqueado: 'Bloqueado',
+      cancelado: 'Cancelado',
     };
     return map[estado] || 'Desconocido';
   }
@@ -609,8 +926,10 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
     const map: Record<EstadoTurno, any> = {
       atendido: 'success',
       pendiente: 'info',
+      pendiente_pago: 'secondary',
       ocupado: 'warn',
       bloqueado: 'secondary',
+      cancelado: 'danger',
     };
     return map[estado] || 'info';
   }
@@ -629,7 +948,7 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
 
   private getSlotsDisponiblesSemana(ignoreTurnoId?: number): SelectOption<string>[] {
     const opciones: SelectOption<string>[] = [];
-    const horas = this.getHorasDesdeConfiguracion();
+    const horas = this.getHorasVisiblesSemana();
 
     for (const dia of this.diasSemana) {
       for (const hora of horas) {
@@ -646,10 +965,37 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
     return opciones;
   }
 
+  private setInicioSemana(date: Date): void {
+    const monday = new Date(date);
+    monday.setHours(0, 0, 0, 0);
+    this.inicioSemana = monday;
+    this.mesSeleccionado = this.toMonthKey(monday);
+
+    this.buildDias();
+    this.buildSlots();
+    if (this.doctorSeleccionado) this.loadWeekAppointments(this.doctorSeleccionado);
+  }
+
+  private toMonthKey(date: Date): string {
+    const y = date.getFullYear();
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    return `${y}-${m}`;
+  }
+
+  private parseMonthKey(value: string): { year: number; monthIndex: number } | null {
+    const match = /^(\d{4})-(\d{2})$/.exec(value);
+    if (!match) return null;
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    if (!Number.isFinite(year) || !Number.isFinite(month)) return null;
+    if (month < 1 || month > 12) return null;
+    return { year, monthIndex: month - 1 };
+  }
+
   private isSlotDisponibleParaReagendar(fecha: Date, hora: string, ignoreTurnoId?: number): boolean {
     if (!this.isSlotEnHorario(fecha, hora)) return false;
 
-    const ocupados = this.getTurnosEnSlot(fecha, hora).filter((t) => (ignoreTurnoId ? t.id !== ignoreTurnoId : true));
+    const ocupados = this.getTurnosEnSlotAll(fecha, hora).filter((t) => (ignoreTurnoId ? t.id !== ignoreTurnoId : true));
     return ocupados.length === 0;
   }
 
@@ -688,6 +1034,10 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
     private readonly agendaConfigService: AgendaConfigService,
     private readonly pdfService: PdfService,
     private readonly authService: AuthService,
+    private readonly doctorApi: DoctorApiService,
+    private readonly adminApi: AdminApiService,
+    private readonly patientApi: PatientApiService,
+    private readonly messageService: MessageService,
   ) {}
 
   onTabValueChange(value: unknown): void {

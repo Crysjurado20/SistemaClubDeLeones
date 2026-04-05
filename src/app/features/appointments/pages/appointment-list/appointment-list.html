@@ -1,9 +1,10 @@
 <div class="min-h-screen flex flex-col bg-surface-50 dark:bg-surface-950">
+  <app-loading-overlay [show]="searching"></app-loading-overlay>
   <div class="relative z-50">
     <app-header
       title="Club de Leones"
       [showActions]="true"
-      [showThemeToggle]="true"
+      [showThemeToggle]="false"
       [showUser]="true"
       [userLabel]="headerUserLabel"
       [showLogout]="true"
@@ -11,7 +12,7 @@
     ></app-header>
   </div>
 
-  <div class="flex-1 relative overflow-hidden p-4 md:p-6 flex items-center justify-center">
+  <div class="relative w-full flex-1 overflow-hidden flex flex-col items-center p-2 pt-20 md:p-6 md:pt-24">
     <div aria-hidden="true" class="pointer-events-none absolute inset-0 z-0">
       <div
         class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"
@@ -91,6 +92,7 @@
           [globalFilterFields]="['cedula', 'medico', 'especialidad', 'unidadMedica']"
           responsiveLayout="scroll"
           [rowsPerPageOptions]="[10, 25, 50]"
+          styleClass="p-datatable-sm patient-centered-table"
         >
           <ng-template #caption>
             <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
@@ -102,15 +104,23 @@
                 (click)="clear(dt1)"
               ></button>
               <p-iconfield iconPosition="left" class="w-full sm:w-auto">
-                <p-inputicon>
-                  <i class="pi pi-search"></i>
+                <p-inputicon
+                  class="cursor-pointer"
+                  role="button"
+                  tabindex="0"
+                  (click)="runSearch(dt1)"
+                  (keydown.enter)="runSearch(dt1)"
+                  (keydown.space)="runSearch(dt1)"
+                >
+                  <i class="pi pi-search" aria-label="Buscar"></i>
                 </p-inputicon>
                 <input
                   #filter
                   pInputText
                   type="text"
                   class="w-full"
-                  (input)="onGlobalFilter(dt1, $event)"
+                  [(ngModel)]="globalQuery"
+                  (keydown.enter)="runSearch(dt1)"
                   placeholder="Buscar"
                 />
               </p-iconfield>
@@ -119,7 +129,7 @@
 
           <ng-template #header>
             <tr>
-              <th style="min-width: 10rem">
+              <th scope="col" style="min-width: 10rem">
                 <div class="flex justify-between items-center">
                   Cédula
                   <p-columnFilter
@@ -130,7 +140,7 @@
                   ></p-columnFilter>
                 </div>
               </th>
-              <th style="min-width: 14rem">
+              <th scope="col" style="min-width: 14rem">
                 <div class="flex justify-between items-center">
                   Médico
                   <p-columnFilter
@@ -141,16 +151,16 @@
                   ></p-columnFilter>
                 </div>
               </th>
-              <th style="min-width: 12rem">
+              <th scope="col" style="min-width: 12rem">
                 <div class="flex justify-between items-center">Especialidad</div>
               </th>
-              <th style="min-width: 10rem">
+              <th scope="col" style="min-width: 10rem">
                 <div class="flex justify-between items-center">Fecha y Hora</div>
               </th>
-              <th style="min-width: 14rem">
-                <div class="flex justify-between items-center">Centro de Atención</div>
+              <th scope="col" style="min-width: 14rem">
+                <div class="flex justify-between items-center">Consultorio</div>
               </th>
-              <th style="min-width: 8rem; text-align: center">Acciones</th>
+              <th scope="col" style="min-width: 8rem; text-align: center">Acciones</th>
             </tr>
           </ng-template>
 
@@ -167,9 +177,9 @@
               <td>
                 <div class="flex items-center gap-2">
                   <div>
-                    <strong>{{ cita.fecha }}</strong
+                    <strong class="text-base">{{ formatFecha(cita.fecha) }}</strong
                     ><br />
-                    <span class="text-sm text-surface-500">{{ cita.hora }}</span>
+                    <span class="text-lg text-surface-700 dark:text-surface-200">{{ formatHoraAmPm(cita.hora) }}</span>
                   </div>
                 </div>
               </td>
@@ -178,9 +188,6 @@
                   <span class="font-bold text-surface-900 dark:text-surface-0">{{
                     cita.unidadMedica
                   }}</span>
-                  <span class="text-sm text-surface-500 flex items-center gap-1 mt-1">
-                    {{ cita.ubicacion }}
-                  </span>
                 </div>
               </td>
               <td>
@@ -191,6 +198,7 @@
                     class="p-button-rounded p-button-text p-button-secondary"
                     pTooltip="Imprimir turno"
                     tooltipPosition="top"
+                    (click)="imprimirTurno(cita)"
                   ></button>
                   <button
                     pButton
@@ -198,6 +206,7 @@
                     class="p-button-rounded p-button-text p-button-danger"
                     pTooltip="Cancelar cita"
                     tooltipPosition="top"
+                    (click)="cancelarCita(cita)"
                   ></button>
                 </div>
               </td>

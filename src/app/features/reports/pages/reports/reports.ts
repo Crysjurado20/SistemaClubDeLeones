@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -20,7 +20,6 @@ import { SelectModule } from 'primeng/select';
     SelectModule
   ],
   templateUrl: './reports.html',
-  providers: [MessageService]
 })
 export class ReportsComponent implements OnInit {
   
@@ -32,7 +31,10 @@ export class ReportsComponent implements OnInit {
   datosReporte: any[] = [];
   cargando: boolean = false;
 
-  constructor(private messageService: MessageService) {}
+  constructor(
+    private readonly messageService: MessageService,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
     this.tiposReporte = [
@@ -63,6 +65,7 @@ export class ReportsComponent implements OnInit {
           break;
       }
       this.cargando = false;
+      this.cdr.markForCheck();
     }, 600);
   }
 

@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-import { AgendaConfigState, AgendaHorarioDiaConfig, MotivoBloqueoAgenda } from '../models/agenda-config.model';
+import { AgendaConfigState, AgendaHorarioDiaConfig } from '../models/agenda-config.model';
 
 const STORAGE_KEY = 'agenda-config-v1';
 
@@ -24,7 +24,7 @@ export class AgendaConfigService {
     this.save({ ...current, horarioSemana: horarioSemana.map((d) => ({ ...d })) });
   }
 
-  setBloqueo(dateKey: string, motivo: MotivoBloqueoAgenda): void {
+  setBloqueo(dateKey: string, motivo: string): void {
     const current = this.state();
     this.save({ ...current, bloqueos: { ...current.bloqueos, [dateKey]: motivo } });
   }
@@ -34,7 +34,7 @@ export class AgendaConfigService {
     return !!this.state().bloqueos[key];
   }
 
-  getBloqueoMotivo(date: Date): MotivoBloqueoAgenda | null {
+  getBloqueoMotivo(date: Date): string | null {
     const key = this.toDateKey(date);
     return this.state().bloqueos[key] ?? null;
   }

@@ -4,11 +4,30 @@ type AppRole = 'ADMIN' | 'DOCTOR' | 'PATIENT';
 
 type JwtPayload = {
   exp?: number;
+  sub?: string;
   roles?: string[];
+  rol?: string | string[];
   name?: string;
   email?: string;
   [key: string]: unknown;
 };
+
+function mapBackendRoleToAppRole(role: string): string {
+  const normalized = role.trim().toUpperCase();
+
+  if (normalized === 'ADMINISTRADOR') return 'ADMIN';
+  if (normalized === 'MEDICO' || normalized === 'MÉDICO') return 'DOCTOR';
+  if (normalized === 'PACIENTE') return 'PATIENT';
+
+  return normalized;
+}
+
+function normalizeRoles(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string');
+  if (typeof value === 'string') return [value];
+  return [];
+}
 
 const TOKEN_KEYS = ['access_token', 'token', 'jwt', 'auth_token'] as const;
 const USER_LABEL_KEY = 'userLabel';
@@ -17,6 +36,39 @@ const USER_LABEL_KEY = 'userLabel';
   providedIn: 'root',
 })
 export class AuthService {
+
+  getStoredUser(): { idUsuario: number; nombres: string; apellidos?: string; rol: string } | null {
+    const raw = localStorage.getItem('usuario');
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw) as { idUsuario?: unknown; nombres?: unknown; apellidos?: unknown; rol?: unknown };
+      const idUsuario = typeof parsed.idUsuario === 'number' ? parsed.idUsuario : null;
+      const nombres = typeof parsed.nombres === 'string' ? parsed.nombres : '';
+      const apellidos = typeof parsed.apellidos === 'string' ? parsed.apellidos : '';
+      const rol = typeof parsed.rol === 'string' ? parsed.rol : '';
+
+      if (!idUsuario) return null;
+      return { idUsuario, nombres, apellidos: apellidos || undefined, rol };
+    } catch {
+      return null;
+    }
+  }
+
+  getUserId(): number | null {
+    const payload = this.getPayload();
+    const sub = typeof payload?.sub === 'string' ? payload.sub.trim() : '';
+    if (sub) {
+      const parsed = Number(sub);
+      if (Number.isInteger(parsed) && parsed > 0) return parsed;
+    }
+
+    return this.getStoredUser()?.idUsuario ?? null;
+  }
+
+  getStoredUserName(): string {
+    const n = this.getStoredUser()?.nombres?.trim();
+    return n || 'Usuario';
+  }
 
   loginMock(role: AppRole, userLabel?: string): void {
     const defaultNameByRole: Record<AppRole, string> = {
@@ -40,6 +92,7 @@ export class AuthService {
   logout(): void {
     for (const key of TOKEN_KEYS) localStorage.removeItem(key);
     localStorage.removeItem(USER_LABEL_KEY);
+    localStorage.removeItem('usuario');
   }
 
   getToken(): string | null {
@@ -55,24 +108,39 @@ export class AuthService {
   }
 
   getDisplayLabel(): string {
-    const name = this.getName();
-    const role = this.getPrimaryRole();
-    const roleLabel = role ? this.getRoleLabel(role) : null;
+    const stored = this.getStoredUser();
+    const nombres = (stored?.nombres ?? this.getName() ?? '').toString().trim();
+    const apellidos = (stored?.apellidos ?? '').toString().trim();
 
-    if (!name) return 'Usuario';
+    const primaryRole = this.getPrimaryRole();
+    const roleLabel = primaryRole ? this.getRoleLabel(primaryRole) : '';
 
-    const baseName = name.includes('·') ? name.split('·')[0].trim() : name.trim();
+    const nombresTokens = nombres
+      .split(/\s+/)
+      .map((t) => t.trim())
+      .reduce<string[]>((acc, t) => (t ? acc.concat(t) : acc), []);
+    const apellidosTokens = apellidos
+      .split(/\s+/)
+      .map((t) => t.trim())
+      .reduce<string[]>((acc, t) => (t ? acc.concat(t) : acc), []);
 
-    if (!roleLabel) return baseName;
+    const nombre1 = nombresTokens[0] ?? '';
+    const apellidoPaterno = apellidosTokens[0] ?? (nombresTokens.length > 1 ? (nombresTokens.at(-1) ?? '') : '');
+    const short = [nombre1, apellidoPaterno].filter(Boolean).join(' ').trim();
+    if (short) return roleLabel ? `${roleLabel}: ${short}` : short;
 
-    const normalizedName = role === 'DOCTOR' ? this.ensureDoctorPrefix(baseName) : baseName;
-    return `${normalizedName} · ${roleLabel}`;
+    const fallbackName = nombresTokens.slice(0, 2).join(' ') || 'Usuario';
+    return roleLabel ? `${roleLabel}: ${fallbackName}` : fallbackName;
   }
 
   getRoles(): string[] {
     const payload = this.getPayload();
-    const roles = payload?.roles ?? [];
-    return roles.map((r) => r.trim()).filter(Boolean).map((r) => r.toUpperCase());
+
+    const set = new Set<string>();
+    for (const r of normalizeRoles(payload?.roles)) set.add(r);
+    for (const r of normalizeRoles(payload?.rol)) set.add(r);
+
+    return [...set].map(mapBackendRoleToAppRole);
   }
 
   private getPrimaryRole(): AppRole | null {

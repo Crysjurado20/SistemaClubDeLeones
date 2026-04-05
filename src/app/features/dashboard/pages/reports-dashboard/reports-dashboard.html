@@ -62,15 +62,13 @@
         class="card h-full shadow-md flex justify-between items-center p-4 rounded-xl border-l-4 border-green-500 mb-0"
       >
         <div>
-          <span class="block text-surface-500 font-medium mb-2">Ingresos Mensuales</span>
-          <div class="text-900 font-bold text-2xl">
-            {{ kpis()?.monthlyIncome != null ? (kpis()?.monthlyIncome | currency: 'USD') : '—' }}
-          </div>
+          <span class="block text-surface-500 font-medium mb-2">Total Doctores</span>
+          <div class="text-900 font-bold text-2xl">{{ kpis()?.totalDoctors ?? '—' }}</div>
         </div>
         <div
           class="flex items-center justify-center bg-green-100 dark:bg-green-900 rounded-lg w-12 h-12"
         >
-          <i class="pi pi-dollar text-green-500 text-xl"></i>
+          <i class="pi pi-id-card text-green-500 text-xl"></i>
         </div>
       </div>
 
@@ -107,7 +105,7 @@
       <div class="col-span-12 xl:col-span-8">
         <div class="card shadow-md rounded-xl p-4">
           <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
-            Ingresos por Especialidad (USD)
+            Doctores con agendas más atareadas (Top 5)
           </div>
           <p-chart type="bar" [data]="barData()" [options]="barOptions()"></p-chart>
         </div>
@@ -116,12 +114,12 @@
       <div class="col-span-12 xl:col-span-4">
         <div class="card shadow-md rounded-xl p-4 flex flex-col items-center">
           <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
-            Estado de Facturación
+            Pacientes por Grupo Etario (%)
           </div>
           <p-chart
             type="doughnut"
             [data]="doughnutData()"
-            [options]="pieOptions()"
+            [options]="doughnutOptions()"
             class="w-full sm:w-3/4"
           ></p-chart>
         </div>
@@ -130,23 +128,25 @@
       <div class="col-span-12 xl:col-span-8">
         <div class="card shadow-md rounded-xl p-4">
           <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
-            Tendencia Mensual de Citas (2026)
+            Citas por mes (últimos 12 meses)
           </div>
           <p-chart type="line" [data]="lineData()" [options]="lineOptions()"></p-chart>
         </div>
       </div>
 
       <div class="col-span-12 xl:col-span-4">
-        <div class="card shadow-md rounded-xl p-4 flex flex-col items-center">
+        <div class="card shadow-md rounded-xl p-4">
           <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
-            Pacientes por Género
+            Doctor más atareado (mes actual)
           </div>
-          <p-chart
-            type="pie"
-            [data]="pieData()"
-            [options]="pieOptions()"
-            class="w-full sm:w-3/4"
-          ></p-chart>
+
+          <div class="flex flex-col gap-2">
+            <div class="text-surface-500">Doctor</div>
+            <div class="text-900 font-bold text-lg">{{ topDoctor?.label ?? '—' }}</div>
+
+            <div class="text-surface-500 mt-2">Citas del mes</div>
+            <div class="text-900 font-bold text-3xl">{{ topDoctor?.value ?? '—' }}</div>
+          </div>
         </div>
       </div>
     </p-fluid>

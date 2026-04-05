@@ -27,12 +27,11 @@ export class ReportsComponent {
 
   barData = signal<any>(null);
   lineData = signal<any>(null);
-  pieData = signal<any>(null);
   doughnutData = signal<any>(null);
 
   barOptions = signal<any>(null);
   lineOptions = signal<any>(null);
-  pieOptions = signal<any>(null);
+  doughnutOptions = signal<any>(null);
 
   chartEffect = effect(() => {
     this.isDarkTheme.set(this.layoutService.layoutConfig().darkTheme);
@@ -68,19 +67,18 @@ export class ReportsComponent {
     const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
 
     const charts = this.charts();
-    const incomeBySpecialty = charts?.incomeBySpecialty ?? [];
     const appointmentsByMonth = charts?.appointmentsByMonth ?? [];
-    const patientsByGender = charts?.patientsByGender ?? [];
-    const billingStatus = charts?.billingStatus ?? [];
+    const busiestDoctors = charts?.busiestDoctors ?? [];
+    const patientsByAgeGroup = charts?.patientsByAgeGroup ?? [];
 
     this.barData.set({
-      labels: incomeBySpecialty.map((x) => x.label),
+      labels: busiestDoctors.map((x) => x.label),
       datasets: [
         {
-          label: 'Ingresos Mensuales',
+          label: 'Citas del mes',
           backgroundColor: documentStyle.getPropertyValue('--p-primary-500'),
           borderColor: documentStyle.getPropertyValue('--p-primary-500'),
-          data: incomeBySpecialty.map((x) => x.value),
+          data: busiestDoctors.map((x) => x.value),
         },
       ],
     });
@@ -105,7 +103,7 @@ export class ReportsComponent {
       labels: appointmentsByMonth.map((x) => x.label),
       datasets: [
         {
-          label: 'Citas Atendidas',
+          label: 'Citas',
           data: appointmentsByMonth.map((x) => x.value),
           fill: true,
           backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -131,59 +129,54 @@ export class ReportsComponent {
       },
     });
 
-    this.pieData.set({
-      labels: patientsByGender.map((x) => x.label),
-      datasets: [
-        {
-          data: patientsByGender.map((x) => x.value),
-          backgroundColor: [
-            documentStyle.getPropertyValue('--p-pink-500'),
-            documentStyle.getPropertyValue('--p-blue-500'),
-            documentStyle.getPropertyValue('--p-gray-500'),
-            documentStyle.getPropertyValue('--p-green-500'),
-            documentStyle.getPropertyValue('--p-orange-500'),
-          ].slice(0, Math.max(patientsByGender.length, 1)),
-          hoverBackgroundColor: [
-            documentStyle.getPropertyValue('--p-pink-400'),
-            documentStyle.getPropertyValue('--p-blue-400'),
-            documentStyle.getPropertyValue('--p-gray-400'),
-            documentStyle.getPropertyValue('--p-green-400'),
-            documentStyle.getPropertyValue('--p-orange-400'),
-          ].slice(0, Math.max(patientsByGender.length, 1)),
-        },
-      ],
-    });
-
     this.doughnutData.set({
-      labels: billingStatus.map((x) => x.label),
+      labels: patientsByAgeGroup.map((x) => x.label),
       datasets: [
         {
-          data: billingStatus.map((x) => x.value),
+          data: patientsByAgeGroup.map((x) => x.value),
           backgroundColor: [
             documentStyle.getPropertyValue('--p-green-500'),
             documentStyle.getPropertyValue('--p-orange-500'),
             documentStyle.getPropertyValue('--p-red-500'),
             documentStyle.getPropertyValue('--p-blue-500'),
             documentStyle.getPropertyValue('--p-gray-500'),
-          ].slice(0, Math.max(billingStatus.length, 1)),
+          ].slice(0, Math.max(patientsByAgeGroup.length, 1)),
           hoverBackgroundColor: [
             documentStyle.getPropertyValue('--p-green-400'),
             documentStyle.getPropertyValue('--p-orange-400'),
             documentStyle.getPropertyValue('--p-red-400'),
             documentStyle.getPropertyValue('--p-blue-400'),
             documentStyle.getPropertyValue('--p-gray-400'),
-          ].slice(0, Math.max(billingStatus.length, 1)),
+          ].slice(0, Math.max(patientsByAgeGroup.length, 1)),
         },
       ],
     });
 
-    this.pieOptions.set({
+    const donutTotal = patientsByAgeGroup.reduce((acc, x) => acc + (x?.value ?? 0), 0);
+
+    this.doughnutOptions.set({
+      cutout: '62%',
       plugins: {
         legend: {
           position: 'bottom',
           labels: { usePointStyle: true, color: textColor },
         },
+        tooltip: {
+          callbacks: {
+            label: (ctx: any) => {
+              const label = ctx?.label ?? '';
+              const value = Number(ctx?.parsed ?? 0);
+              const pct = donutTotal > 0 ? Math.round((value / donutTotal) * 100) : 0;
+              return `${label}: ${value} (${pct}%)`;
+            },
+          },
+        },
       },
     });
+  }
+
+  get topDoctor(): { label: string; value: number } | null {
+    const items = this.charts()?.busiestDoctors ?? [];
+    return items.length ? items[0] : null;
   }
 }

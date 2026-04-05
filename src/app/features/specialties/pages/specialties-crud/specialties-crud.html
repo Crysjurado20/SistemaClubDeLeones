@@ -1,3 +1,5 @@
+<app-loading-overlay [show]="isLoading"></app-loading-overlay>
+
 <div
   class="relative w-full min-h-[calc(100vh-5rem)] overflow-hidden flex flex-col items-center p-2 md:p-6 rounded-xl"
 >
@@ -70,26 +72,6 @@
     <p-fluid>
       <div class="grid grid-cols-1 gap-4 pt-2">
         <div class="field">
-          <label for="codigo" class="font-bold mb-2 block"
-            >Código <span class="text-red-500">*</span></label
-          >
-          <input
-            type="text"
-            pInputText
-            id="codigo"
-            [(ngModel)]="especialidadActual.codigo"
-            required
-            autofocus
-            placeholder="Ej: CM"
-            class="uppercase"
-            maxlength="5"
-          />
-          <small class="text-surface-500"
-            >Abreviatura corta para identificar la especialidad.</small
-          >
-        </div>
-
-        <div class="field">
           <label for="nombre" class="font-bold mb-2 block"
             >Nombre de la Especialidad <span class="text-red-500">*</span></label
           >
@@ -99,6 +81,7 @@
             id="nombre"
             [(ngModel)]="especialidadActual.nombre"
             required
+            autofocus
             placeholder="Ej: Cirugía Maxilofacial"
           />
         </div>

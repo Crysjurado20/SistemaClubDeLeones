@@ -13,6 +13,7 @@ type JwtPayload = {
   role?: string | string[];
   roles?: string | string[];
   authorities?: string | string[];
+  rol?: string | string[];
   [key: string]: unknown;
 };
 
@@ -59,6 +60,29 @@ function normalizeRoles(value: unknown): string[] {
   return [];
 }
 
+function mapBackendRoleToAppRole(role: string): string {
+  const normalized = role.trim().toUpperCase();
+
+  if (normalized === 'ADMINISTRADOR') return 'ADMIN';
+  if (normalized === 'MEDICO' || normalized === 'MÉDICO') return 'DOCTOR';
+  if (normalized === 'PACIENTE') return 'PATIENT';
+
+  return normalized;
+}
+
+function getRolesFromStoredUser(): string[] {
+  const raw = localStorage.getItem('usuario');
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw) as { rol?: unknown };
+    const rol = typeof parsed.rol === 'string' ? parsed.rol.trim() : '';
+    return rol ? [rol] : [];
+  } catch {
+    return [];
+  }
+}
+
 function getRolesFromPayload(payload: JwtPayload | null): string[] {
   if (!payload) return [];
 
@@ -66,7 +90,18 @@ function getRolesFromPayload(payload: JwtPayload | null): string[] {
   for (const r of normalizeRoles(payload.roles)) roles.add(r);
   for (const r of normalizeRoles(payload.role)) roles.add(r);
   for (const r of normalizeRoles(payload.authorities)) roles.add(r);
-  return [...roles].map((r) => r.trim()).filter(Boolean).map((r) => r.toUpperCase());
+  for (const r of normalizeRoles(payload.rol)) roles.add(r);
+
+  // Fallback: si el token no incluye roles (o no se pueden leer),
+  // usamos el rol persistido en el login para no mandar al usuario a Access.
+  if (roles.size === 0) {
+    for (const r of getRolesFromStoredUser()) roles.add(r);
+  }
+
+  return [...roles]
+    .map((r) => r.trim())
+    .filter(Boolean)
+    .map(mapBackendRoleToAppRole);
 }
 
 function isExpired(payload: JwtPayload | null): boolean {

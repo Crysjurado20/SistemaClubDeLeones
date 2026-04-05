@@ -1,7 +1,7 @@
 <app-header
   [title]="hospitalNombre()"
   [showActions]="true"
-  [showThemeToggle]="true"
+  [showThemeToggle]="false"
   [showUser]="true"
   [userLabel]="headerUserLabel()"
   [showLogout]="true"
@@ -29,38 +29,91 @@
 
         <div class="flex flex-col gap-3">
           @for (dia of horarioSemana; track dia.key) {
-            <div class="grid grid-cols-[42px_48px_1fr_18px_1fr] gap-2 items-center">
-              <div class="text-sm font-medium text-surface-700 dark:text-surface-100">{{ dia.label }}</div>
+            <div class="flex flex-col gap-2">
+              <div class="grid grid-cols-[42px_48px_1fr_18px_1fr] gap-2 items-center">
+                <div class="text-sm font-medium text-surface-700 dark:text-surface-100">{{ dia.label }}</div>
 
-              <div class="flex justify-center">
-                <p-toggleswitch [(ngModel)]="dia.activo" (ngModelChange)="onToggleDia(dia)"></p-toggleswitch>
+                <div class="flex justify-center">
+                  <p-toggleswitch [(ngModel)]="dia.activo" (ngModelChange)="onToggleDia(dia)"></p-toggleswitch>
+                </div>
+
+                <p-select
+                  [options]="timeOptions()"
+                  [(ngModel)]="dia.inicio"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="--:--"
+                  appendTo="body"
+                  styleClass="w-full"
+                  [disabled]="!dia.activo"
+                  (ngModelChange)="onChangeHora(dia)"
+                ></p-select>
+
+                <div class="text-center text-surface-500">a</div>
+
+                <p-select
+                  [options]="timeOptions()"
+                  [(ngModel)]="dia.fin"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="--:--"
+                  appendTo="body"
+                  styleClass="w-full"
+                  [disabled]="!dia.activo"
+                  (ngModelChange)="onChangeHora(dia)"
+                ></p-select>
               </div>
 
-              <p-select
-                [options]="timeOptions()"
-                [(ngModel)]="dia.inicio"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="--:--"
-                appendTo="body"
-                styleClass="w-full"
-                [disabled]="!dia.activo"
-                (ngModelChange)="onChangeHora(dia)"
-              ></p-select>
+              @if (dia.activo && dia.inicio && dia.fin) {
+                <div class="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-2 items-center">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-surface-700 dark:text-surface-100">Duración</span>
+                    <p-select
+                      [options]="duracionOptions"
+                      [(ngModel)]="dia.duracionTurnoMinutos"
+                      optionLabel="label"
+                      optionValue="value"
+                      appendTo="body"
+                      styleClass="w-36"
+                      (ngModelChange)="onChangeDuracion(dia)"
+                    ></p-select>
+                  </div>
 
-              <div class="text-center text-surface-500">a</div>
+                  <div class="flex flex-wrap gap-2 justify-start md:justify-end">
+                    <button
+                      pButton
+                      type="button"
+                      label="Todos"
+                      class="p-button-outlined"
+                      (click)="seleccionarTodosTurnos(dia)"
+                    ></button>
+                    <button
+                      pButton
+                      type="button"
+                      label="Limpiar"
+                      class="p-button-outlined"
+                      (click)="limpiarTurnos(dia)"
+                    ></button>
+                  </div>
+                </div>
 
-              <p-select
-                [options]="timeOptions()"
-                [(ngModel)]="dia.fin"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="--:--"
-                appendTo="body"
-                styleClass="w-full"
-                [disabled]="!dia.activo"
-                (ngModelChange)="onChangeHora(dia)"
-              ></p-select>
+                <div class="flex flex-wrap gap-2">
+                  @for (t of getTurnosGenerados(dia); track t) {
+                    <button
+                      type="button"
+                      class="px-3 py-1 rounded-full text-sm border transition-colors"
+                      [ngClass]="
+                        isTurnoActivo(dia, t)
+                          ? 'bg-primary text-primary-contrast border-primary'
+                          : 'bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-100 border-surface-300 dark:border-surface-700'
+                      "
+                      (click)="toggleTurno(dia, t)"
+                    >
+                      {{ t }}
+                    </button>
+                  }
+                </div>
+              }
             </div>
           }
         </div>
@@ -92,13 +145,25 @@
             selectionMode="multiple"
             [(ngModel)]="fechasSeleccionadas"
             [showOtherMonths]="true"
+            [minDate]="minDate"
             [disabledDays]="[0, 6]"
             styleClass="w-full"
           >
             <ng-template pTemplate="date" let-date>
               <span
                 class="inline-flex w-8 h-8 items-center justify-center border-round text-sm"
-                [ngClass]="getDateCellClass(date)"
+                [ngClass]="[
+                  getDateCellClass(date),
+                  isFechaBloqueada(date)
+                    ? 'bg-orange-200 text-orange-900 font-bold ring-2 ring-orange-500 dark:bg-orange-950/35 dark:text-orange-100 dark:ring-orange-500/60'
+                    : '',
+                  isFechaSeleccionada(date) && !isFechaBloqueada(date)
+                    ? 'bg-primary text-primary-contrast font-bold'
+                    : ''
+                ]"
+                [pTooltip]="getMotivoBloqueo(date)"
+                [tooltipDisabled]="!isFechaBloqueada(date)"
+                tooltipPosition="top"
               >
                 {{ date.day }}
               </span>
@@ -107,10 +172,7 @@
 
           <div class="flex items-center gap-4 text-xs text-surface-600 dark:text-surface-300 flex-wrap">
             <span class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-surface-300"></span> Finde / fuera
-            </span>
-            <span class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span> Vacaciones
+              <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Bloqueado
             </span>
             <span class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-primary"></span> Seleccionado
@@ -119,15 +181,14 @@
 
           <div>
             <label class="text-sm font-medium block mb-2" for="motivo">Motivo del bloqueo</label>
-            <p-select
-              inputId="motivo"
-              [options]="motivoOptions()"
+            <textarea
+              pTextarea
+              id="motivo"
+              class="w-full"
+              rows="3"
               [(ngModel)]="motivoBloqueo"
-              optionLabel="label"
-              optionValue="value"
-              appendTo="body"
-              styleClass="w-full"
-            ></p-select>
+              placeholder="Ej: Congreso, vacaciones, capacitación, emergencia..."
+            ></textarea>
           </div>
 
           <button
@@ -136,7 +197,7 @@
             label="Confirmar bloqueo"
             icon="pi pi-external-link"
             class="w-full"
-            [disabled]="!fechasSeleccionadas.length"
+            [disabled]="!fechasSeleccionadas.length || !motivoBloqueo.trim()"
             (click)="confirmarBloqueo()"
           ></button>
         </div>

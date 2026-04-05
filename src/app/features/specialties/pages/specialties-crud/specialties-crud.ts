@@ -1,4 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -7,8 +12,10 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { FluidModule } from 'primeng/fluid';
+import { finalize } from 'rxjs';
 import { GenericCrudComponent, TableColumn } from '../../../../shared/ui/crud/crud';
 import { SpecialtiesApiService } from '../../services/specialties-api.service';
+import { LoadingOverlay } from '../../../../shared/ui/loading-overlay/loading-overlay';
 
 @Component({
   selector: 'app-crud-specialties',
@@ -22,11 +29,29 @@ import { SpecialtiesApiService } from '../../services/specialties-api.service';
     TextareaModule,
     FluidModule,
     GenericCrudComponent,
+    LoadingOverlay,
   ],
   templateUrl: './specialties-crud.html',
-  providers: [MessageService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CrudSpecialtiesComponent implements OnInit {
+export class CrudSpecialtiesComponent {
+  private loadingCount = 0;
+  get isLoading(): boolean {
+    return this.loadingCount > 0;
+  }
+
+  private startLoading(): void {
+    this.loadingCount++;
+    this.cdr.markForCheck();
+  }
+
+  private stopLoading(): void {
+    setTimeout(() => {
+      this.loadingCount = Math.max(0, this.loadingCount - 1);
+      this.cdr.markForCheck();
+    }, 0);
+  }
+
   // Columnas para la tabla
   columnasEspecialidades: TableColumn[] = [
     { field: 'codigo', header: 'Código', type: 'text' },
@@ -43,39 +68,49 @@ export class CrudSpecialtiesComponent implements OnInit {
   constructor(
     private readonly messageService: MessageService,
     private readonly specialtiesApi: SpecialtiesApiService,
-  ) {}
-
-  ngOnInit() {
-    this.cargarEspecialidades();
+    private readonly cdr: ChangeDetectorRef,
+  ) {
+    afterNextRender(() => this.cargarEspecialidades());
   }
 
   private cargarEspecialidades(): void {
-    this.specialtiesApi.getAll().subscribe({
+    this.startLoading();
+    this.specialtiesApi
+      .getAll()
+      .pipe(finalize(() => this.stopLoading()))
+      .subscribe({
       next: (items) => {
         this.listaEspecialidades = Array.isArray(items) ? items : [];
+        this.cdr.markForCheck();
       },
       error: () => {
         this.listaEspecialidades = [];
+        this.cdr.markForCheck();
       },
     });
   }
 
   abrirModalNuevo() {
     this.especialidadActual = {
-      codigo: '',
       nombre: '',
       descripcion: '',
     };
     this.mostrarModalDialog = true;
+    this.cdr.markForCheck();
   }
 
   abrirModalEditar(especialidadSeleccionada: any) {
     this.especialidadActual = structuredClone(especialidadSeleccionada);
     this.mostrarModalDialog = true;
+    this.cdr.markForCheck();
   }
 
   eliminarEspecialidad(especialidadSeleccionada: any) {
-    this.specialtiesApi.delete(especialidadSeleccionada.id).subscribe({
+    this.startLoading();
+    this.specialtiesApi
+      .delete(especialidadSeleccionada.id)
+      .pipe(finalize(() => this.stopLoading()))
+      .subscribe({
       next: () => {
         this.listaEspecialidades = this.listaEspecialidades.filter(
           (esp) => esp.id !== especialidadSeleccionada.id,
@@ -85,6 +120,7 @@ export class CrudSpecialtiesComponent implements OnInit {
           summary: 'Eliminado',
           detail: 'Especialidad eliminada correctamente',
         });
+        this.cdr.markForCheck();
       },
       error: () => {
         this.messageService.add({
@@ -92,28 +128,40 @@ export class CrudSpecialtiesComponent implements OnInit {
           summary: 'Error',
           detail: 'No se pudo eliminar la especialidad',
         });
+        this.cdr.markForCheck();
       },
     });
   }
 
   guardarEspecialidad() {
-    if (!this.especialidadActual.codigo || !this.especialidadActual.nombre) {
+    if (!this.especialidadActual.nombre) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'El código y el nombre son obligatorios',
+        detail: 'El nombre es obligatorio',
       });
       return;
     }
 
-    // Convertimos el código a mayúsculas automáticamente
-    this.especialidadActual.codigo = this.especialidadActual.codigo.toUpperCase();
+    const payload = {
+      nombre: this.especialidadActual.nombre,
+      descripcion: this.especialidadActual.descripcion ?? '',
+    };
 
     if (this.especialidadActual.id) {
-      this.specialtiesApi.update(this.especialidadActual.id, this.especialidadActual).subscribe({
+      this.startLoading();
+      this.specialtiesApi
+        .update(this.especialidadActual.id, payload)
+        .pipe(finalize(() => this.stopLoading()))
+        .subscribe({
         next: () => {
           const index = this.listaEspecialidades.findIndex((e) => e.id === this.especialidadActual.id);
-          if (index >= 0) this.listaEspecialidades[index] = this.especialidadActual;
+          if (index >= 0) {
+            this.listaEspecialidades[index] = {
+              ...this.listaEspecialidades[index],
+              ...payload,
+            };
+          }
 
           this.listaEspecialidades = [...this.listaEspecialidades];
           this.mostrarModalDialog = false;
@@ -123,6 +171,8 @@ export class CrudSpecialtiesComponent implements OnInit {
             summary: 'Actualizado',
             detail: 'Especialidad actualizada correctamente',
           });
+
+          this.cdr.markForCheck();
         },
         error: () => {
           this.messageService.add({
@@ -130,12 +180,17 @@ export class CrudSpecialtiesComponent implements OnInit {
             summary: 'Error',
             detail: 'No se pudo actualizar la especialidad',
           });
+          this.cdr.markForCheck();
         },
       });
     } else {
-      this.specialtiesApi.create(this.especialidadActual).subscribe({
+      this.startLoading();
+      this.specialtiesApi
+        .create(payload)
+        .pipe(finalize(() => this.stopLoading()))
+        .subscribe({
         next: (created) => {
-          this.listaEspecialidades.push(created ?? this.especialidadActual);
+          this.listaEspecialidades.push(created ?? { ...this.especialidadActual, ...payload });
           this.listaEspecialidades = [...this.listaEspecialidades];
           this.mostrarModalDialog = false;
 
@@ -144,6 +199,8 @@ export class CrudSpecialtiesComponent implements OnInit {
             summary: 'Creado',
             detail: 'Especialidad registrada exitosamente',
           });
+
+          this.cdr.markForCheck();
         },
         error: () => {
           this.messageService.add({
@@ -151,6 +208,7 @@ export class CrudSpecialtiesComponent implements OnInit {
             summary: 'Error',
             detail: 'No se pudo registrar la especialidad',
           });
+          this.cdr.markForCheck();
         },
       });
     }
@@ -158,5 +216,6 @@ export class CrudSpecialtiesComponent implements OnInit {
 
   ocultarDialog() {
     this.mostrarModalDialog = false;
+    this.cdr.markForCheck();
   }
 }

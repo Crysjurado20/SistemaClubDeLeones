@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -15,6 +15,9 @@ import { DialogModule } from 'primeng/dialog';
 import { Header } from '../../../../shared/ui/header/header';
 import { PdfService } from '../../services/pdf.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { MessageService } from 'primeng/api';
+import { finalize } from 'rxjs';
+import { PatientApiService } from '../../../../core/services/patient-api.service';
 
 export interface FacturaElectronica {
   id: string;
@@ -47,7 +50,7 @@ export interface FacturaElectronica {
   templateUrl: './invoices-list.html',
 })
 export class InvoicesListComponent implements OnInit {
-  nombrePaciente: string = 'Juan López';
+  nombrePaciente: string = 'Usuario';
   facturas: FacturaElectronica[] = [];
   loading: boolean = true;
   mostrarModalPdf: boolean = false;
@@ -63,30 +66,49 @@ export class InvoicesListComponent implements OnInit {
     private readonly pdfService: PdfService,
     private readonly sanitizer: DomSanitizer,
     private readonly authService: AuthService,
+    private readonly patientApi: PatientApiService,
+    private readonly messageService: MessageService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
-    this.facturas = [
-      {
-        id: '1',
-        numeroFactura: '001-002-00001024',
-        fechaEmision: '2026-03-25',
-        medico: 'Dr. Vasconez Yepez Luis',
-        especialidad: 'Consulta - Cardiología',
-        total: 35,
-        estado: 'Pagada',
-      },
-      {
-        id: '2',
-        numeroFactura: '001-002-00001089',
-        fechaEmision: '2026-04-02',
-        medico: 'Dra. Astudillo Silva Marcia',
-        especialidad: 'Consulta - Cirugía Maxilofacial',
-        total: 50,
-        estado: 'Pagada',
-      },
-    ];
-    this.loading = false;
+    this.nombrePaciente = this.authService.getStoredUserName();
+    const idPaciente = this.authService.getUserId();
+
+    if (!idPaciente) {
+      this.loading = false;
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sesión',
+        detail: 'No se pudo identificar al paciente.',
+      });
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.loading = true;
+    this.patientApi
+      .getInvoicesByPaciente(idPaciente)
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (items) => {
+          this.facturas = (items ?? []) as any;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error cargando facturas:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'No se pudieron cargar las facturas',
+            detail: 'Intenta nuevamente.',
+          });
+        },
+      });
   }
 
   onGlobalFilter(table: Table, event: Event) {

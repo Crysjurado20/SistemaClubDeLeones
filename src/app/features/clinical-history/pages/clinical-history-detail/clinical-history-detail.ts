@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+
+import { MessageService } from 'primeng/api';
 
 import { ButtonModule } from 'primeng/button';
 import { Table, TableModule } from 'primeng/table';
@@ -17,8 +19,7 @@ import { SelectModule } from 'primeng/select';
 import { Header as AppHeader } from '../../../../shared/ui/header/header';
 
 import { AuthService } from '../../../../core/services/auth.service';
-
-type EstadoTurno = 'atendido' | 'pendiente' | 'ocupado' | 'bloqueado';
+import { DoctorApiService } from '../../../../core/services/doctor-api.service';
 
 type Turno = {
   id: string;
@@ -29,7 +30,7 @@ type Turno = {
   tipoConsulta: string;
   observacionTitulo: string;
   observacionDetalle: string;
-  estado: EstadoTurno;
+  estado: string;
 };
 
 type Diagnostico = {
@@ -89,10 +90,12 @@ type AntecedenteItem = {
   styleUrls: ['./clinical-history-detail.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ClinicalHistoryDetailComponent {
+export class ClinicalHistoryDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly doctorApi = inject(DoctorApiService);
+  private readonly messageService = inject(MessageService);
 
   readonly hospitalNombre = signal('Club de Leones');
   readonly doctorLabel = signal('Dr. Juan Perez');
@@ -100,7 +103,7 @@ export class ClinicalHistoryDetailComponent {
   readonly headerUserLabel = computed(() => this.authService.getDisplayLabel());
 
   readonly header = signal<ClinicalHistoryHeader>({
-    historiaClinica: this.route.snapshot.paramMap.get('hcId') ?? '—',
+    historiaClinica: '—',
     cedula: this.route.snapshot.queryParamMap.get('cedula') ?? '—',
     apellidos: this.route.snapshot.queryParamMap.get('apellidos') ?? 'Paciente',
     nombres: this.route.snapshot.queryParamMap.get('nombres') ?? 'Sin nombre',
@@ -115,22 +118,79 @@ export class ClinicalHistoryDetailComponent {
     email: '—',
   });
 
+  readonly edad = computed(() => {
+    const birth = this.parseDate(this.datosPersonales().fechaNacimiento);
+    if (!birth) return '—';
+
+    const today = new Date();
+    const years = this.diffYears(today, birth);
+    if (years > 0) return years === 1 ? '1 año' : `${years} años`;
+
+    const months = this.diffMonths(today, birth);
+    if (months <= 0) return '< 1 mes';
+    return months === 1 ? '1 mes' : `${months} meses`;
+  });
+
   @ViewChild('turnosTable') turnosTable?: Table;
 
   searchTurnos = '';
   especialidadSeleccionada: string | null = null;
-  tipoConsultaSeleccionada: string | null = null;
   verMedicacionModal = false;
 
-  readonly turnos = signal<Turno[]>(this.buildMockTurnos());
-  readonly diagnosticos = signal<Diagnostico[]>(this.buildMockDiagnosticos());
-  readonly antecedentes = signal<AntecedenteItem[]>([
-    { tipo: 'Personales', detalle: 'Ansiedad generalizada. Sin alergias conocidas.' },
-    { tipo: 'Familiares', detalle: 'HTA (madre). Diabetes tipo 2 (padre).' },
-    { tipo: 'Alergias', detalle: 'Niega.' },
-    { tipo: 'Cirugías', detalle: 'Apendicectomía (2019).' },
-  ]);
-  readonly medicacion = signal<Medicamento[]>(this.buildMockMedicacion());
+  readonly turnos = signal<Turno[]>([]);
+  readonly diagnosticos = signal<Diagnostico[]>([]);
+  readonly antecedentes = signal<AntecedenteItem[]>([]);
+  readonly medicacion = signal<Medicamento[]>([]);
+
+  ngOnInit(): void {
+    const idPacienteRaw = this.route.snapshot.paramMap.get('hcId');
+    const idPaciente = idPacienteRaw ? Number(idPacienteRaw) : Number.NaN;
+    if (!Number.isFinite(idPaciente)) {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Id de paciente inválido.' });
+      return;
+    }
+
+    this.doctorApi.getClinicalHistory(idPaciente).subscribe({
+      next: (dto) => {
+        this.header.set({
+          historiaClinica: dto.header.historiaClinica,
+          cedula: dto.header.cedula,
+          apellidos: dto.header.apellidos,
+          nombres: dto.header.nombres,
+        });
+
+        this.datosPersonales.set({
+          dni: dto.datosPersonales.dni,
+          fechaNacimiento: dto.datosPersonales.fechaNacimiento,
+          sexo: dto.datosPersonales.sexo,
+          estadoCivil: '—',
+          telefono: dto.datosPersonales.telefono,
+          email: dto.datosPersonales.email,
+        });
+
+        this.diagnosticos.set(dto.diagnosticos ?? []);
+        this.antecedentes.set(dto.antecedentes ?? []);
+        this.medicacion.set(dto.medicacion ?? []);
+        this.turnos.set(
+          (dto.turnos ?? []).map((t) => ({
+            id: t.id,
+            fecha: t.fecha,
+            hora: t.hora,
+            doctor: t.doctor,
+            especialidad: t.especialidad,
+            tipoConsulta: t.tipoConsulta,
+            observacionTitulo: t.observacionTitulo,
+            observacionDetalle: t.observacionDetalle,
+            estado: t.estado,
+          })),
+        );
+      },
+      error: (err) => {
+        const mensaje = err?.error?.mensaje ?? 'No se pudo cargar la historia clínica.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: mensaje });
+      },
+    });
+  }
 
   readonly especialidadOptions = computed(() => {
     const values = Array.from(
@@ -143,19 +203,6 @@ export class ClinicalHistoryDetailComponent {
     ).sort((a, b) => a.localeCompare(b));
 
     return [{ label: 'Todas las especialidades', value: null }, ...values.map((v) => ({ label: v, value: v }))];
-  });
-
-  readonly tipoConsultaOptions = computed(() => {
-    const values = Array.from(
-      new Set(
-        this.turnos()
-          .map((t) => t.tipoConsulta)
-          .map((v) => v?.trim())
-          .filter((v): v is string => Boolean(v)),
-      ),
-    ).sort((a, b) => a.localeCompare(b));
-
-    return [{ label: 'Todos los tipos', value: null }, ...values.map((v) => ({ label: v, value: v }))];
   });
 
   readonly nombreCompleto = computed(
@@ -171,6 +218,56 @@ export class ClinicalHistoryDetailComponent {
 
     return parts.map((p) => p[0]?.toUpperCase()).join('') || 'HC';
   });
+
+  private parseDate(value?: string | null): Date | null {
+    if (!value) return null;
+
+    // ISO con hora: yyyy-mm-ddTHH:mm:ss
+    const isoDatePart = /^\s*(\d{4}-\d{2}-\d{2})[T\s].*$/.exec(value);
+    if (isoDatePart) {
+      return this.parseDate(isoDatePart[1]);
+    }
+
+    // yyyy-mm-dd
+    const iso = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/.exec(value);
+    if (iso) {
+      const y = Number(iso[1]);
+      const m = Number(iso[2]);
+      const d = Number(iso[3]);
+      const dt = new Date(y, m - 1, d);
+      return Number.isFinite(dt.getTime()) ? dt : null;
+    }
+
+    // dd/mm/yyyy
+    const dmy = /^\s*(\d{2})\/(\d{2})\/(\d{4})\s*$/.exec(value);
+    if (dmy) {
+      const d = Number(dmy[1]);
+      const m = Number(dmy[2]);
+      const y = Number(dmy[3]);
+      const dt = new Date(y, m - 1, d);
+      return Number.isFinite(dt.getTime()) ? dt : null;
+    }
+
+    const native = new Date(value);
+    return Number.isFinite(native.getTime()) ? native : null;
+  }
+
+  private diffYears(today: Date, birth: Date): number {
+    let years = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      years--;
+    }
+    return years;
+  }
+
+  private diffMonths(today: Date, birth: Date): number {
+    let months = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
+    if (today.getDate() < birth.getDate()) {
+      months--;
+    }
+    return months;
+  }
 
   readonly diagnosticosActivos = computed(() => this.diagnosticos().filter((d) => d.activo));
 
@@ -193,16 +290,6 @@ export class ClinicalHistoryDetailComponent {
     this.turnosTable?.filter(null, 'especialidad', 'equals');
   }
 
-  onTipoConsultaChange(value: string | null): void {
-    this.tipoConsultaSeleccionada = value;
-    if (value) {
-      this.turnosTable?.filter(value, 'tipoConsulta', 'equals');
-      return;
-    }
-
-    this.turnosTable?.filter(null, 'tipoConsulta', 'equals');
-  }
-
   abrirMedicacion(): void {
     this.verMedicacionModal = true;
   }
@@ -222,78 +309,6 @@ export class ClinicalHistoryDetailComponent {
     const isPm = hoursRaw >= 12;
     const hours12 = hoursRaw % 12 === 0 ? 12 : hoursRaw % 12;
     return `${hours12}:${minutes} ${isPm ? 'PM' : 'AM'}`;
-  }
-
-  private buildMockTurnos(): Turno[] {
-    return [
-      {
-        id: 't-001',
-        fecha: '01/04/2026',
-        hora: '09:00',
-        doctor: 'Dr. R. Medina',
-        especialidad: 'Consulta general',
-        tipoConsulta: 'Consulta general',
-        observacionTitulo: 'Sesión 1 — Evolución favorable',
-        observacionDetalle:
-          'Paciente refiere disminución de la frecuencia e intensidad de episodios ansiosos. Se refuerza plan terapéutico cognitivo-conductual.',
-        estado: 'pendiente',
-      },
-      {
-        id: 't-002',
-        fecha: '18/03/2026',
-        hora: '10:30',
-        doctor: 'Dra. López',
-        especialidad: 'Psiquiatría',
-        tipoConsulta: 'Control',
-        observacionTitulo: 'Sesión 2 — Ajuste de abordaje',
-        observacionDetalle:
-          'Se revisa adherencia a medicación. Se indica higiene del sueño y control en 4 semanas.',
-        estado: 'atendido',
-      },
-      {
-        id: 't-003',
-        fecha: '05/03/2026',
-        hora: '08:00',
-        doctor: 'Dr. R. Medina',
-        especialidad: 'Psicología',
-        tipoConsulta: 'Seguimiento',
-        observacionTitulo: 'Sesión 3 — Estable',
-        observacionDetalle:
-          'Sin cambios significativos. Continuar plan terapéutico y registrar síntomas.',
-        estado: 'ocupado',
-      },
-    ];
-  }
-
-  private buildMockDiagnosticos(): Diagnostico[] {
-    return [
-      { codigo: 'F41.1', descripcion: 'Trastorno de ansiedad generalizada', activo: true },
-      { codigo: 'G47.0', descripcion: 'Insomnio', activo: true },
-      { codigo: 'Z72.3', descripcion: 'Falta de ejercicio físico', activo: false },
-    ];
-  }
-
-  private buildMockMedicacion(): Medicamento[] {
-    return [
-      {
-        id: 'm-001',
-        nombre: 'Escitalopram 10 mg',
-        posologia: '1 comp. diario · Mañana',
-        fechaMandada: '30/03/2026',
-      },
-      {
-        id: 'm-002',
-        nombre: 'Clonazepam 0,5 mg',
-        posologia: 'SOS · máx. 1 comp/día',
-        fechaMandada: '15/02/2026',
-      },
-      {
-        id: 'm-003',
-        nombre: 'Sertralina 50 mg',
-        posologia: '1 comp. diario',
-        fechaMandada: '10/2025',
-      },
-    ];
   }
 
 }

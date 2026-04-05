@@ -3,7 +3,7 @@
     <app-header
       title="Club de Leones"
       [showActions]="true"
-      [showThemeToggle]="true"
+      [showThemeToggle]="false"
       [showUser]="true"
       [userLabel]="userLabel"
       [showLogout]="true"
@@ -12,6 +12,7 @@
   </div>
 
   <p-toast position="top-right"></p-toast>
+  <app-loading-overlay [show]="cargandoCalendario || cargandoDisponibilidad || agendando" />
   <p-confirmDialog
     key="citaConfirm"
     [style]="{ width: '400px' }"
@@ -61,11 +62,21 @@
 
   <div class="relative z-10 p-4 md:p-6 flex flex-col pt-16 md:pt-18">
     <ng-container *ngIf="vistaActual === 'agendamiento'">
-      <app-selector-especialidad (onSearch)="recibirEspecialidad($event)">
+      <app-selector-especialidad
+        [busy]="cargandoCalendario"
+        (specialtySelected)="recibirEspecialidad($event)"
+      >
       </app-selector-especialidad>
 
       <div class="mt-4">
-        <app-calendar-custom (dateSelected)="abrirModalDoctores($event)"> </app-calendar-custom>
+        @if (mostrandoCalendario) {
+          <app-calendar-custom
+            [specialtyId]="especialidadSeleccionada?.idEspecialidad ?? null"
+            (loadingChange)="onCalendarioLoadingChange($event)"
+            (dateSelected)="abrirModalDoctores($event)"
+          >
+          </app-calendar-custom>
+        }
       </div>
 
       <app-doctor-time-modal
@@ -82,6 +93,7 @@
       <app-payment-method
         [appointmentData]="citaConfirmada"
         (onBack)="vistaActual = 'agendamiento'"
+        (onConfirm)="pagarYAgendar($event)"
       >
       </app-payment-method>
     </ng-container>

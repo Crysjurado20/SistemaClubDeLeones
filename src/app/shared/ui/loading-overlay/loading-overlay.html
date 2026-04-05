@@ -1,0 +1,22 @@
+@if (show()) {
+  <div class="fixed inset-0 z-50" aria-label="Cargando" aria-busy="true">
+    <div class="absolute inset-0 bg-surface-0 dark:bg-surface-900 opacity-70"></div>
+    <div class="absolute inset-0 flex items-center justify-center">
+      <output aria-live="polite" class="dot-spinner text-surface-900 dark:text-surface-0">
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="dot-spinner__dot"></span>
+        <span class="sr-only">Cargando…</span>
+      </output>
+    </div>
+  </div>
+}

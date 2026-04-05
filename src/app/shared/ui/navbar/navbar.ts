@@ -6,9 +6,10 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { StyleClassModule } from 'primeng/styleclass';
 import { LayoutService } from '../layout/layout.service';
+import { AuthService as SessionAuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -19,6 +20,8 @@ import { LayoutService } from '../layout/layout.service';
 })
 export class Navbar {
   private readonly layoutService = inject(LayoutService, { optional: true });
+  private readonly router = inject(Router);
+  private readonly authService = inject(SessionAuthService);
 
   homeLink = input<string | any[]>('/');
   logoSrc = input<string>('img/logo_Leones.png');
@@ -49,5 +52,17 @@ export class Navbar {
       ...state,
       darkTheme: !state.darkTheme,
     }));
+  }
+
+  onLogout() {
+    this.authService.logout();
+
+    const link = this.logoutLink();
+    if (Array.isArray(link)) {
+      void this.router.navigate(link);
+      return;
+    }
+
+    void this.router.navigateByUrl(link);
   }
 }

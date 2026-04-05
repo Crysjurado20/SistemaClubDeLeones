@@ -9,8 +9,9 @@
 
       <div class="grid grid-cols-7 gap-1.5 sm:gap-2 mb-2">
         <div
-          *ngFor="let wd of weekDayLabels"
+          *ngFor="let wd of weekDayLabels; let i = index"
           class="text-center text-[10px] sm:text-sm leading-tight font-semibold text-surface-600 dark:text-surface-300"
+          [class.text-primary]="i === todayColumnIndex"
         >
           {{ wd }}
         </div>
@@ -36,6 +37,9 @@
               [class.ring-inset]="isSelected(cell.date)"
               [class.ring-green-600]="isSelected(cell.date)"
               [class.dark:ring-green-400]="isSelected(cell.date)"
+              [class.ring-1]="isToday(cell.date) && !isSelected(cell.date)"
+              [class.ring-inset]="isToday(cell.date) && !isSelected(cell.date)"
+              [ngClass]="{ 'ring-[var(--primary-color)]': isToday(cell.date) && !isSelected(cell.date) }"
               [style.background]="
                 cell.available ? (isSelected(cell.date) ? selectedBg : availableBg) : null
               "

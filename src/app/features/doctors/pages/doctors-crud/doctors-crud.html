@@ -1,3 +1,5 @@
+  <app-loading-overlay [show]="isLoading"></app-loading-overlay>
+
   <div
     class="relative w-full min-h-[calc(100vh-5rem)] overflow-hidden flex flex-col items-center p-2 md:p-6 rounded-xl"
   >
@@ -101,6 +103,17 @@
             />
           </div>
 
+          <div class="field">
+            <label for="consultorio" class="font-bold mb-2 block">Consultorio (Opcional)</label>
+            <input
+              type="text"
+              pInputText
+              id="consultorio"
+              [(ngModel)]="doctorActual.consultorio"
+              placeholder="Ej: Consultorio 3 - Planta 2"
+            />
+          </div>
+
           <div class="field md:col-span-2">
             <label for="nombre" class="font-bold mb-2 block"
               >Nombres y Apellidos <span class="text-red-500">*</span></label
@@ -137,6 +150,20 @@
           </div>
 
           <div class="field md:col-span-2">
+            <label for="contrasena" class="font-bold mb-2 block">Contraseña (Opcional)</label>
+            <input
+              type="password"
+              pInputText
+              id="contrasena"
+              [(ngModel)]="doctorActual.contrasena"
+              placeholder="Si se deja vacío, se asigna: doctorclubleones"
+            />
+            <small class="text-surface-500 block mt-2">
+              Si está editando y deja este campo vacío, la contraseña se restablece a <b>doctorclubleones</b>.
+            </small>
+          </div>
+
+          <div class="field md:col-span-2">
             <label for="especialidad" class="font-bold mb-2 block"
               >Especialidad(es) <span class="text-red-500">*</span></label
             >
@@ -144,10 +171,13 @@
               id="especialidad"
               [options]="especialidadesOpciones"
               [(ngModel)]="doctorActual.especialidad"
+              (onChange)="onEspecialidadesChange()"
               placeholder="Seleccionar especialidades..."
               optionLabel="name"
+              [dataKey]="'idEspecialidad'"
               display="chip"
               [filter]="true"
+              appendTo="body"
               styleClass="w-full"
             >
             </p-multiselect>
@@ -157,36 +187,54 @@
             class="field md:col-span-2 bg-surface-50 dark:bg-surface-800 p-4 rounded-lg border border-surface-200 dark:border-surface-700"
             *ngIf="doctorActual.especialidad && doctorActual.especialidad.length > 0"
           >
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div *ngFor="let esp of doctorActual.especialidad" class="flex flex-col gap-2">
-                <span class="font-medium text-sm">{{ esp.name }} ($)</span>
-                <p-inputnumber
-                  [(ngModel)]="esp.precio"
-                  mode="currency"
-                  currency="USD"
-                  locale="en-US"
-                  placeholder="0.00"
-                  class="w-full"
-                ></p-inputnumber>
+            <div class="grid grid-cols-1 gap-4">
+              <div
+                *ngFor="let esp of doctorActual.especialidad"
+                class="p-3 rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900"
+              >
+                <div class="font-semibold mb-3">{{ esp.name }}</div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="flex flex-col gap-2">
+                    <span class="font-medium text-sm">Costo de Consulta ($)</span>
+                    <p-inputnumber
+                      [(ngModel)]="esp.precio"
+                      mode="currency"
+                      currency="USD"
+                      locale="en-US"
+                      placeholder="0.00"
+                      class="w-full"
+                    ></p-inputnumber>
+                  </div>
+
+                  <div class="flex flex-col gap-2">
+                    <span class="font-medium text-sm">Días de Atención</span>
+                    <p-multiselect
+                      [options]="diasSemana"
+                      [(ngModel)]="esp.dias"
+                      placeholder="Seleccionar días..."
+                      optionLabel="name"
+                      [dataKey]="'code'"
+                      display="chip"
+                      appendTo="body"
+                      styleClass="w-full"
+                    >
+                    </p-multiselect>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="flex flex-col gap-2">
+                      <span class="font-medium text-sm">Hora Inicio</span>
+                      <input type="time" pInputText [(ngModel)]="esp.horaInicio" />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                      <span class="font-medium text-sm">Hora Fin</span>
+                      <input type="time" pInputText [(ngModel)]="esp.horaFin" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="field md:col-span-2">
-            <label for="dias" class="font-bold mb-2 block"
-              >Días de Atención <span class="text-red-500">*</span></label
-            >
-            <p-multiselect
-              id="dias"
-              [options]="diasSemana"
-              [(ngModel)]="doctorActual.dias"
-              placeholder="Seleccionar días..."
-              optionLabel="name"
-              display="chip"
-              styleClass="w-full"
-            >
-            </p-multiselect>
           </div>
         </div>
       </p-fluid>

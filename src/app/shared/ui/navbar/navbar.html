@@ -74,7 +74,7 @@
             <button
               type="button"
               class="layout-topbar-action"
-              [routerLink]="logoutLink()"
+              (click)="onLogout()"
               aria-label="Salir"
             >
               <i class="pi pi-sign-out" aria-hidden="true"></i>

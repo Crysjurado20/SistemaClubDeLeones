@@ -2,3 +2,12 @@
 	background: var(--surface-card);
 	border-bottom: 1px solid var(--surface-border);
 }
+
+:host ::ng-deep .daily-centered-table .p-datatable-thead > tr > th {
+	text-align: center;
+}
+
+:host ::ng-deep .daily-centered-table .p-datatable-tbody > tr > td {
+	text-align: center;
+	vertical-align: middle;
+}

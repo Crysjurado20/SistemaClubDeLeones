@@ -1,0 +1,8 @@
+:host ::ng-deep .patient-centered-table .p-datatable-thead > tr > th {
+	text-align: center;
+}
+
+:host ::ng-deep .patient-centered-table .p-datatable-tbody > tr > td {
+	text-align: center;
+	vertical-align: middle;
+}

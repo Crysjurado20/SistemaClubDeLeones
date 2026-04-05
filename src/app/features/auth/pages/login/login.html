@@ -1,7 +1,23 @@
 <app-header></app-header>
+
+<p-toast position="top-right"></p-toast>
+<app-loading-overlay [show]="isLoading()" />
+
 <div
   class="relative flex-1 flex items-center justify-center p-4 pt-16 md:p-8 md:pt-20 overflow-hidden"
 >
+  <div class="absolute left-4 top-4 z-20">
+    <button
+      pButton
+      type="button"
+      icon="pi pi-arrow-left"
+      label="Regresar"
+      class="p-button-text p-button-secondary"
+      [disabled]="isLoading()"
+      routerLink="/landing"
+    ></button>
+  </div>
+
   <div aria-hidden="true" class="pointer-events-none absolute inset-0">
     <div class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"></div>
     <div class="absolute -left-56 top-24 w-[34rem] h-16 bg-yellow-300 -rotate-45 opacity-70"></div>
@@ -68,84 +84,88 @@
         </div>
 
         <div>
-          <label
-            for="email1"
-            class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2"
-            >Correo Electrónico</label
-          >
-          <p-inputgroup class="mb-8">
-            <p-inputgroup-addon>
-              <i class="pi pi-envelope"></i>
-            </p-inputgroup-addon>
-            <input
-              pInputText
-              id="email1"
-              type="text"
-              placeholder="Correo electrónico"
-              [(ngModel)]="email"
-            />
-          </p-inputgroup>
+          <div class="mb-6">
+            <label
+              for="email1"
+              class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2"
+              >Correo Electrónico</label
+            >
+            <p-inputgroup class="mb-1">
+              <p-inputgroup-addon>
+                <i class="pi pi-envelope"></i>
+              </p-inputgroup-addon>
+              <input
+                pInputText
+                class="p-inputtext-lg"
+                id="email1"
+                type="email"
+                placeholder="Correo electrónico"
+                [(ngModel)]="credenciales.correo"
+                name="correo"
+                #correoModel="ngModel"
+                required
+                email
+              />
+            </p-inputgroup>
 
-          <label
-            for="password1"
-            class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2"
-            >Contraseña</label
-          >
-          <p-inputgroup class="mb-4">
-            <p-inputgroup-addon>
-              <i class="pi pi-lock"></i>
-            </p-inputgroup-addon>
-            <p-password
-              id="password1"
-              [(ngModel)]="password"
-              placeholder="Contraseña"
-              [toggleMask]="true"
-              [feedback]="false"
-              [fluid]="true"
-            ></p-password>
-          </p-inputgroup>
+            <app-field-error
+              [control]="correoModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'El correo es obligatorio.', email: 'Ingresa un correo válido.' }"
+            />
+          </div>
+
+          <div class="mb-2">
+            <label
+              for="password1"
+              class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2"
+              >Contraseña</label
+            >
+            <p-inputgroup class="mb-1">
+              <p-inputgroup-addon>
+                <i class="pi pi-lock"></i>
+              </p-inputgroup-addon>
+              <p-password
+                id="password1"
+                [(ngModel)]="credenciales.contrasena"
+                name="contrasena"
+                #contrasenaModel="ngModel"
+                placeholder="Contraseña"
+                [toggleMask]="true"
+                [feedback]="false"
+                [fluid]="true"
+                inputStyleClass="p-inputtext-lg"
+                required
+              ></p-password>
+            </p-inputgroup>
+
+            <app-field-error
+              [control]="contrasenaModel"
+              [submitted]="submitted()"
+              [messages]="{ required: 'La contraseña es obligatoria.' }"
+            />
+          </div>
 
           <div class="flex items-center justify-between mt-2 mb-8 gap-8">
             <div class="flex items-center">
               <p-checkbox [(ngModel)]="checked" id="rememberme1" binary class="mr-2"></p-checkbox>
               <label for="rememberme1">Recordarme</label>
             </div>
-            <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary"
-              >¿Olvidaste tu contraseña?</span
+            <a
+              class="font-medium no-underline ml-2 text-right cursor-pointer text-primary"
+              routerLink="/auth/access"
+              >¿Olvidaste tu contraseña?</a
             >
           </div>
-          <p-button label="Iniciar sesión" styleClass="w-full" routerLink="/"></p-button>
+          <p-button
+            label="Iniciar sesión"
+            styleClass="w-full"
+            [disabled]="isLoading()"
+            (onClick)="iniciarSesion()"
+          ></p-button>
 
-          <div class="mt-6 border-t border-surface-200 dark:border-surface-700 pt-4">
-            <div class="text-sm font-medium text-surface-700 dark:text-surface-200 mb-3">
-              Acceso rápido (mock)
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <p-button
-                type="button"
-                label="Admin"
-                severity="secondary"
-                [outlined]="true"
-                (onClick)="loginMock('ADMIN')"
-              ></p-button>
-              <p-button
-                type="button"
-                label="Doctor"
-                severity="secondary"
-                [outlined]="true"
-                (onClick)="loginMock('DOCTOR')"
-              ></p-button>
-              <p-button
-                type="button"
-                label="Paciente"
-                severity="secondary"
-                [outlined]="true"
-                (onClick)="loginMock('PATIENT')"
-              ></p-button>
-            </div>
-            <div class="text-xs text-surface-500 mt-2">
-              Esto crea un JWT falso en el navegador solo para pruebas.
-            </div>
+          <div class="mt-4 text-center">
+            <a class="font-medium text-primary cursor-pointer" routerLink="/auth/register">Crear cuenta</a>
           </div>
         </div>
       </div>

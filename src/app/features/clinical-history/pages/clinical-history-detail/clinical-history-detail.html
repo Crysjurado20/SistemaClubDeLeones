@@ -1,7 +1,7 @@
 <app-header
   [title]="hospitalNombre()"
   [showActions]="true"
-  [showThemeToggle]="true"
+  [showThemeToggle]="false"
   [showUser]="true"
   [userLabel]="headerUserLabel()"
   [showLogout]="true"
@@ -48,9 +48,9 @@
       <div class="mt-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div class="w-full">
-            <div class="border-1 border-surface-200 dark:border-surface-700 border-round p-4 h-full">
+            <div class="border-1 border-surface-200 dark:border-surface-700 border-round p-3 h-full">
               <div
-                class="text-sm font-medium text-color-secondary uppercase mb-3"
+                class="text-sm font-medium text-color-secondary uppercase mb-2"
                 style="letter-spacing: 0.05em"
               >
                 Datos personales
@@ -67,6 +67,12 @@
                   <th scope="row">Fecha de nac.</th>
                   <td class="font-medium text-surface-900 dark:text-surface-0">
                     {{ datosPersonales().fechaNacimiento }}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Edad</th>
+                  <td class="font-medium text-surface-900 dark:text-surface-0">
+                    {{ edad() }}
                   </td>
                 </tr>
                 <tr>
@@ -163,16 +169,6 @@
               optionValue="value"
               class="w-full sm:w-64"
             ></p-select>
-
-            <p-select
-              inputId="filtroTipoConsulta"
-              [options]="tipoConsultaOptions()"
-              [(ngModel)]="tipoConsultaSeleccionada"
-              (ngModelChange)="onTipoConsultaChange($event)"
-              optionLabel="label"
-              optionValue="value"
-              class="w-full sm:w-56"
-            ></p-select>
           </div>
 
           <p-iconfield iconPosition="left" class="w-full lg:w-96">
@@ -215,7 +211,7 @@
             <tr>
               <th scope="col" style="min-width: 9rem">Fecha</th>
               <th scope="col" style="min-width: 7rem">Hora</th>
-              <th scope="col" style="min-width: 18rem">Tipo de consulta</th>
+              <th scope="col" style="min-width: 18rem">Tipo Consulta</th>
               <th scope="col" style="min-width: 26rem">Observaciones</th>
               <th scope="col" style="min-width: 8rem; text-align: center">Medicación</th>
             </tr>
@@ -230,13 +226,10 @@
                 {{ formatHora(turno.hora) }}
               </td>
               <td class="font-medium text-sm text-surface-900 dark:text-surface-0 ">
-                  {{ turno.doctor }} · {{ turno.especialidad }} · {{ turno.tipoConsulta }}
+                  {{ turno.doctor }} · {{ turno.especialidad }} · {{ turno.tipoConsulta || '—' }}
               </td>
               <td>
                 <div class="flex flex-col">
-                  <div class="font-medium  font-bold text-sm text-surface-900 dark:text-surface-0">
-                    {{ turno.observacionTitulo }}
-                  </div>
                   <div class="font-medium text-sm text-surface-900 dark:text-surface-0">
                     {{ turno.observacionDetalle }}
                   </div>
