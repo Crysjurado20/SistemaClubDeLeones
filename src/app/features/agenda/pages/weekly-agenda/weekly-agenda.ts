@@ -517,14 +517,32 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
     });
   }
 
-  cancelarCita(): void {
+ cancelarCita(): void {
     if (!this.turnoAcciones) return;
 
-    const id = this.turnoAcciones.id;
-    // Solo UI: si se cancela desde otra pantalla, se pintará rojo al recargar.
-    this.turnos = this.turnos.map((t) => (t.id === id ? { ...t, estado: 'cancelado' } : t));
-    this.turnoAcciones = null;
-    this.mostrarAccionesCita = false;
+    const idCita = this.turnoAcciones.id;
+    const idMedico = this.doctorSeleccionado ?? this.authService.getUserId();
+    
+    if (!idMedico) return;
+
+    this.doctorApi.cancelAppointment(idCita, idMedico).subscribe({
+      next: (res) => {
+        this.turnos = this.turnos.map((t) => (t.id === idCita ? { ...t, estado: 'cancelado' } : t));
+        
+        this.messageService.add({ 
+          severity: 'success', 
+          summary: 'Cita cancelada', 
+          detail: res?.mensaje ?? 'La cita fue cancelada correctamente.' 
+        });
+        
+        this.turnoAcciones = null;
+        this.mostrarAccionesCita = false;
+      },
+      error: (err) => {
+        const mensaje = err?.error?.mensaje ?? 'No se pudo cancelar la cita.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: mensaje });
+      }
+    });
   }
 
   reagendarCita(): void {

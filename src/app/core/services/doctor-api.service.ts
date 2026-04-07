@@ -154,6 +154,9 @@ export class DoctorApiService {
   rescheduleAppointment(idCita: number, payload: RescheduleAppointmentRequest): Observable<{ mensaje: string }> {
     return this.http.put<{ mensaje: string }>(`${this.apiBase}/appointments/${idCita}/reschedule`, payload);
   }
+  cancelAppointment(idCita: number, idMedico: number): Observable<{ mensaje: string }> {
+    return this.http.put<{ mensaje: string }>(`${this.apiBase}/appointments/${idCita}/cancel`, { idMedico });
+  }
 
   getClinicalHistory(idPaciente: number): Observable<DoctorClinicalHistory> {
     return this.http.get<DoctorClinicalHistory>(`${this.apiBase}/patients/${idPaciente}/clinical-history`);
