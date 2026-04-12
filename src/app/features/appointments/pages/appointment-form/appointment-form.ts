@@ -96,6 +96,20 @@ export class AppointmentsFormComponent {
       return;
     }
 
+    // Validación de fecha pasada (coherente con backend DateTime.UtcNow)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(fecha);
+    selectedDate.setHours(0, 0, 0, 0);
+    if (selectedDate.getTime() < today.getTime()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Fecha no válida',
+        detail: 'No puedes agendar citas en fechas pasadas. Selecciona una fecha futura.',
+      });
+      return;
+    }
+
     this.fechaSeleccionada = fecha;
     this.cargandoDisponibilidad = true;
     this.listaMedicos = [];

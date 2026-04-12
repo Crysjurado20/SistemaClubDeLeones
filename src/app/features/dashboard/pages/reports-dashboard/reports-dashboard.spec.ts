@@ -1,22 +1,40 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 
-import { ReportsDashboard } from './reports-dashboard';
+import { DashboardApiService, DashboardStatsResponse } from '../../services/dashboard-api.service';
+import { AdminDashboardComponent } from '../admin-dashboard/admin-dashboard';
 
-describe('ReportsDashboard', () => {
-  let component: ReportsDashboard;
-  let fixture: ComponentFixture<ReportsDashboard>;
+describe('AdminDashboardComponent', () => {
+    let component: AdminDashboardComponent;
+    let fixture: ComponentFixture<AdminDashboardComponent>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ReportsDashboard],
-    }).compileComponents();
+    const dashboardResponse: DashboardStatsResponse = {
+        citasPorEstado: [],
+        especialidadesMasSolicitadas: [],
+        ingresosMensuales: [],
+    };
 
-    fixture = TestBed.createComponent(ReportsDashboard);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
-  });
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [AdminDashboardComponent],
+            providers: [
+                {
+                    provide: DashboardApiService,
+                    useValue: {
+                        getDashboardStats: () => of(dashboardResponse),
+                        getDashboard: () => of(dashboardResponse),
+                    },
+                },
+            ],
+        }).compileComponents();
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+        fixture = TestBed.createComponent(AdminDashboardComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+        await fixture.whenStable();
+    });
+
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });

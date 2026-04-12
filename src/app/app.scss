@@ -1,96 +1,122 @@
 .agenda-header {
-  display: grid;
-  grid-template-columns: 54px repeat(5, 1fr);
+    display: grid;
+    grid-template-columns: 54px repeat(5, 1fr);
 }
 
 .agenda-row {
-  display: grid;
-  grid-template-columns: 54px repeat(5, 1fr);
-  min-height: 60px;
+    display: grid;
+    grid-template-columns: 54px repeat(5, 1fr);
+    min-height: 60px;
 }
 
 .hora-col {
-  width: 54px;
-  min-width: 54px;
+    width: 54px;
+    min-width: 54px;
 }
 
 .slot-celda {
-  min-height: 60px;
-  transition: background 0.15s;
+    min-height: 60px;
+    transition: background 0.15s;
 }
 
 .slot-hoy {
-  background: var(--primary-50, rgba(var(--primary-color-rgb, 99, 102, 241), 0.04));
+    background: var(--primary-50, rgba(var(--primary-color-rgb, 99, 102, 241), 0.04));
 }
 
 .dia-header {
-  padding: 0.5rem;
+    padding: 0.5rem;
 }
 
 .dia-hoy {
-  background: var(--primary-50, rgba(var(--primary-color-rgb), 0.06)) !important;
+    background: var(--primary-50, rgba(var(--primary-color-rgb), 0.06)) !important;
 }
 
 .hoy-badge {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: var(--primary-color);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  font-size: 0.95rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 0.95rem;
 }
 
 .turno-card {
-  transition: filter 0.15s;
-  
-  &:hover {
-    filter: brightness(0.95);
-  }
+    transition: filter 0.15s;
+
+    &:hover {
+        filter: brightness(0.95);
+    }
 }
 
 .turno-atendido {
-  background: #E8F8F5;
-  border-color: #00A699 !important;
-  color: #006E65;
+    background: #E8F8F5;
+    border-color: #00A699 !important;
+    color: #006E65;
 }
 
 .turno-pendiente {
-  background: var(--blue-50);
-  border-color: var(--primary-color) !important;
-  color: var(--primary-700);
+    background: var(--blue-50);
+    border-color: var(--primary-color) !important;
+    color: var(--primary-700);
 }
 
 .turno-ocupado {
-  background: #FFF3E0;
-  border-color: #FF8C00 !important;
-  color: #7A4100;
+    background: #FFF3E0;
+    border-color: #FF8C00 !important;
+    color: #7A4100;
 }
 
 .turno-bloqueado {
-  background: var(--surface-100);
-  border-color: var(--surface-400) !important;
-  color: var(--text-color-secondary);
+    background: var(--surface-100);
+    border-color: var(--surface-400) !important;
+    color: var(--text-color-secondary);
 }
 
-@media (prefers-color-scheme: dark) {
-  .turno-atendido { background: #003D35; color: #5FD9CC; }
-  .turno-pendiente { background: #0A2A4A; color: #7AB8F5; }
-  .turno-ocupado   { background: #3D2200; color: #FFB84D; }
-  .turno-bloqueado { background: #2A2A2A; color: #ABABAB; }
+:root.app-dark {
+    .turno-atendido {
+        background: #003D35;
+        color: #5FD9CC;
+    }
+
+    .turno-pendiente {
+        background: #0A2A4A;
+        color: #7AB8F5;
+    }
+
+    .turno-ocupado {
+        background: #3D2200;
+        color: #FFB84D;
+    }
+
+    .turno-bloqueado {
+        background: #2A2A2A;
+        color: #ABABAB;
+    }
 }
 
 .estado-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
 }
 
-.dot-atendido  { background: #00A699; }
-.dot-pendiente { background: var(--primary-color); }
-.dot-ocupado   { background: #FF8C00; }
-.dot-bloqueado { background: var(--surface-400); }
+.dot-atendido {
+    background: #00A699;
+}
+
+.dot-pendiente {
+    background: var(--primary-color);
+}
+
+.dot-ocupado {
+    background: #FF8C00;
+}
+
+.dot-bloqueado {
+    background: var(--surface-400);
+}

@@ -2,24 +2,24 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { Navbar } from '../navbar/navbar';
 
 @Component({
-  selector: 'app-header',
-  imports: [Navbar],
-  templateUrl: './header.html',
-  styleUrl: './header.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-header',
+    imports: [Navbar],
+    templateUrl: './header.html',
+    styleUrl: './header.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Header {
-  homeLink = input<string | any[]>('/');
-  logoSrc = input<string>('img/logo_Leones.png');
-  logoAlt = input<string>('Logo');
-  title = input<string>('Club de Leones');
+    homeLink = input<string | any[]>('/');
+    logoSrc = input<string>('img/logo_Leones.png');
+    logoAlt = input<string>('Logo');
+    title = input<string>('Club de Leones');
 
-  showMenuToggle = input(false);
+    showMenuToggle = input(false);
 
-  showActions = input(false);
-  showThemeToggle = input(false);
-  showUser = input(false);
-  userLabel = input('Administrador');
-  showLogout = input(false);
-  logoutLink = input<string | any[]>('/auth/login');
+    showActions = input(true);
+    showThemeToggle = input(true);
+    showUser = input(false);
+    userLabel = input('Administrador');
+    showLogout = input(false);
+    logoutLink = input<string | any[]>('/auth/login');
 }

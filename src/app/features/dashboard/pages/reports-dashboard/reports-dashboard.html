@@ -1,154 +1,115 @@
-<div
-  class="min-h-screen relative flex flex-col bg-surface-50 dark:bg-surface-950 p-4 md:p-6 overflow-hidden"
->
-  <div aria-hidden="true" class="pointer-events-none absolute inset-0 z-0">
-    <div class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"></div>
-    <div class="absolute -left-56 top-24 w-[34rem] h-16 bg-yellow-300 -rotate-45 opacity-70"></div>
-    <div
-      class="absolute -left-56 top-20 w-[36rem] h-1 -rotate-45"
-      style="background-color: var(--primary-color)"
-    ></div>
-    <div
-      class="absolute left-14 bottom-24 w-16 h-16 rounded-full bg-surface-200 dark:bg-surface-700 opacity-80"
-    ></div>
-    <div
-      class="absolute right-16 bottom-36 w-20 h-20 rounded-full opacity-70 flex items-center justify-center shadow-lg"
-      style="background-color: var(--primary-color)"
-    >
-      <span
-        class="text-yellow-400 font-serif font-bold text-5xl drop-shadow-md"
-        style="font-family: 'Times New Roman', serif"
-        >L</span
-      >
-    </div>
-    <svg
-      class="absolute -left-40 -bottom-40 w-[520px] h-[520px] opacity-95"
-      viewBox="0 0 600 600"
-      fill="none"
-    >
-      <path
-        d="M120 480C180 330 320 250 480 240"
-        stroke="var(--primary-color)"
-        stroke-width="26"
-        stroke-linecap="round"
-      />
-      <path
-        d="M170 520C250 330 390 270 540 260"
-        class="text-yellow-400"
-        stroke="currentColor"
-        stroke-width="26"
-        stroke-linecap="round"
-      />
-    </svg>
-  </div>
-
-  <div class="relative z-10 w-full max-w-7xl mx-auto">
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-      <div
-        class="card h-full shadow-md flex justify-between items-center p-4 rounded-xl border-l-4 border-blue-500 mb-0"
-      >
-        <div>
-          <span class="block text-surface-500 font-medium mb-2">Total Pacientes</span>
-          <div class="text-900 font-bold text-2xl">{{ kpis()?.totalPatients ?? '—' }}</div>
+<div class="min-h-screen relative flex flex-col bg-surface-50 dark:bg-surface-950 p-4 md:p-6 overflow-hidden">
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0 z-0">
+        <div class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"></div>
+        <div class="absolute -left-56 top-24 w-[34rem] h-16 bg-yellow-300 -rotate-45 opacity-70"></div>
+        <div class="absolute -left-56 top-20 w-[36rem] h-1 -rotate-45" style="background-color: var(--primary-color)">
         </div>
-        <div
-          class="flex items-center justify-center bg-blue-100 dark:bg-blue-900 rounded-lg w-12 h-12"
-        >
-          <i class="pi pi-users text-blue-500 text-xl"></i>
+        <div class="absolute left-14 bottom-24 w-16 h-16 rounded-full bg-surface-200 dark:bg-surface-700 opacity-80">
         </div>
-      </div>
-
-      <div
-        class="card h-full shadow-md flex justify-between items-center p-4 rounded-xl border-l-4 border-green-500 mb-0"
-      >
-        <div>
-          <span class="block text-surface-500 font-medium mb-2">Total Doctores</span>
-          <div class="text-900 font-bold text-2xl">{{ kpis()?.totalDoctors ?? '—' }}</div>
+        <div class="absolute right-16 bottom-36 w-20 h-20 rounded-full opacity-70 flex items-center justify-center shadow-lg"
+            style="background-color: var(--primary-color)">
+            <span class="text-yellow-400 font-serif font-bold text-5xl drop-shadow-md"
+                style="font-family: 'Times New Roman', serif">L</span>
         </div>
-        <div
-          class="flex items-center justify-center bg-green-100 dark:bg-green-900 rounded-lg w-12 h-12"
-        >
-          <i class="pi pi-id-card text-green-500 text-xl"></i>
-        </div>
-      </div>
-
-      <div
-        class="card h-full shadow-md flex justify-between items-center p-4 rounded-xl border-l-4 border-orange-500 mb-0"
-      >
-        <div>
-          <span class="block text-surface-500 font-medium mb-2">Citas del Mes</span>
-          <div class="text-900 font-bold text-2xl">{{ kpis()?.monthlyAppointments ?? '—' }}</div>
-        </div>
-        <div
-          class="flex items-center justify-center bg-orange-100 dark:bg-orange-900 rounded-lg w-12 h-12"
-        >
-          <i class="pi pi-calendar text-orange-500 text-xl"></i>
-        </div>
-      </div>
-
-      <div
-        class="card h-full shadow-md flex justify-between items-center p-4 rounded-xl border-l-4 border-purple-500 mb-0"
-      >
-        <div>
-          <span class="block text-surface-500 font-medium mb-2">Doctores Activos</span>
-          <div class="text-900 font-bold text-2xl">{{ kpis()?.activeDoctors ?? '—' }}</div>
-        </div>
-        <div
-          class="flex items-center justify-center bg-purple-100 dark:bg-purple-900 rounded-lg w-12 h-12"
-        >
-          <i class="pi pi-id-card text-purple-500 text-xl"></i>
-        </div>
-      </div>
+        <svg class="absolute -left-40 -bottom-40 w-[520px] h-[520px] opacity-95" viewBox="0 0 600 600" fill="none">
+            <path d="M120 480C180 330 320 250 480 240" stroke="var(--primary-color)" stroke-width="26"
+                stroke-linecap="round" />
+            <path d="M170 520C250 330 390 270 540 260" class="text-yellow-400" stroke="currentColor" stroke-width="26"
+                stroke-linecap="round" />
+        </svg>
     </div>
 
-    <p-fluid class="grid grid-cols-12 gap-6">
-      <div class="col-span-12 xl:col-span-8">
-        <div class="card shadow-md rounded-xl p-4">
-          <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
-            Doctores con agendas más atareadas (Top 5)
-          </div>
-          <p-chart type="bar" [data]="barData()" [options]="barOptions()"></p-chart>
+    <div class="relative z-10 w-full max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+            <div
+                class="card h-full shadow-md flex justify-between items-center p-4 rounded-xl border-l-4 border-blue-500 mb-0">
+                <div>
+                    <span class="block text-surface-500 font-medium mb-2">Total Pacientes</span>
+                    <div class="text-900 font-bold text-2xl">{{ kpis()?.totalPatients ?? '—' }}</div>
+                </div>
+                <div class="flex items-center justify-center bg-blue-100 dark:bg-blue-900 rounded-lg w-12 h-12">
+                    <i class="pi pi-users text-blue-500 text-xl"></i>
+                </div>
+            </div>
+
+            <div
+                class="card h-full shadow-md flex justify-between items-center p-4 rounded-xl border-l-4 border-green-500 mb-0">
+                <div>
+                    <span class="block text-surface-500 font-medium mb-2">Total Médicos</span>
+                    <div class="text-900 font-bold text-2xl">{{ kpis()?.totalDoctors ?? '—' }}</div>
+                </div>
+                <div class="flex items-center justify-center bg-green-100 dark:bg-green-900 rounded-lg w-12 h-12">
+                    <i class="pi pi-id-card text-green-500 text-xl"></i>
+                </div>
+            </div>
+
+            <div
+                class="card h-full shadow-md flex justify-between items-center p-4 rounded-xl border-l-4 border-orange-500 mb-0">
+                <div>
+                    <span class="block text-surface-500 font-medium mb-2">Citas del Mes</span>
+                    <div class="text-900 font-bold text-2xl">{{ kpis()?.monthlyAppointments ?? '—' }}</div>
+                </div>
+                <div class="flex items-center justify-center bg-orange-100 dark:bg-orange-900 rounded-lg w-12 h-12">
+                    <i class="pi pi-calendar text-orange-500 text-xl"></i>
+                </div>
+            </div>
+
+            <div
+                class="card h-full shadow-md flex justify-between items-center p-4 rounded-xl border-l-4 border-purple-500 mb-0">
+                <div>
+                    <span class="block text-surface-500 font-medium mb-2">Médicos Activos</span>
+                    <div class="text-900 font-bold text-2xl">{{ kpis()?.activeDoctors ?? '—' }}</div>
+                </div>
+                <div class="flex items-center justify-center bg-purple-100 dark:bg-purple-900 rounded-lg w-12 h-12">
+                    <i class="pi pi-id-card text-purple-500 text-xl"></i>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <div class="col-span-12 xl:col-span-4">
-        <div class="card shadow-md rounded-xl p-4 flex flex-col items-center">
-          <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
-            Pacientes por Grupo Etario (%)
-          </div>
-          <p-chart
-            type="doughnut"
-            [data]="doughnutData()"
-            [options]="doughnutOptions()"
-            class="w-full sm:w-3/4"
-          ></p-chart>
-        </div>
-      </div>
+        <p-fluid class="grid grid-cols-12 gap-6">
+            <div class="col-span-12 xl:col-span-8">
+                <div class="card shadow-md rounded-xl p-4">
+                    <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
+                        Médicos con agendas más atareadas (Top 5)
+                    </div>
+                    <p-chart type="bar" [data]="barData()" [options]="barOptions()"></p-chart>
+                </div>
+            </div>
 
-      <div class="col-span-12 xl:col-span-8">
-        <div class="card shadow-md rounded-xl p-4">
-          <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
-            Citas por mes (últimos 12 meses)
-          </div>
-          <p-chart type="line" [data]="lineData()" [options]="lineOptions()"></p-chart>
-        </div>
-      </div>
+            <div class="col-span-12 xl:col-span-4">
+                <div class="card shadow-md rounded-xl p-4 flex flex-col items-center">
+                    <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
+                        Pacientes por Grupo Etario (%)
+                    </div>
+                    <p-chart type="doughnut" [data]="doughnutData()" [options]="doughnutOptions()"
+                        class="w-full sm:w-3/4"></p-chart>
+                </div>
+            </div>
 
-      <div class="col-span-12 xl:col-span-4">
-        <div class="card shadow-md rounded-xl p-4">
-          <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
-            Doctor más atareado (mes actual)
-          </div>
+            <div class="col-span-12 xl:col-span-8">
+                <div class="card shadow-md rounded-xl p-4">
+                    <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
+                        Citas por mes (últimos 12 meses)
+                    </div>
+                    <p-chart type="line" [data]="lineData()" [options]="lineOptions()"></p-chart>
+                </div>
+            </div>
 
-          <div class="flex flex-col gap-2">
-            <div class="text-surface-500">Doctor</div>
-            <div class="text-900 font-bold text-lg">{{ topDoctor?.label ?? '—' }}</div>
+            <div class="col-span-12 xl:col-span-4">
+                <div class="card shadow-md rounded-xl p-4">
+                    <div class="font-semibold text-xl mb-4 text-surface-800 dark:text-surface-100">
+                        Médico más atareado (mes actual)
+                    </div>
 
-            <div class="text-surface-500 mt-2">Citas del mes</div>
-            <div class="text-900 font-bold text-3xl">{{ topDoctor?.value ?? '—' }}</div>
-          </div>
-        </div>
-      </div>
-    </p-fluid>
-  </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="text-surface-500">Médico</div>
+                        <div class="text-900 font-bold text-lg">{{ topDoctor?.label ?? '—' }}</div>
+
+                        <div class="text-surface-500 mt-2">Citas del mes</div>
+                        <div class="text-900 font-bold text-3xl">{{ topDoctor?.value ?? '—' }}</div>
+                    </div>
+                </div>
+            </div>
+        </p-fluid>
+    </div>
 </div>

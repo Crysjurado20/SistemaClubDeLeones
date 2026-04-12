@@ -17,6 +17,8 @@ import { finalize } from 'rxjs';
 import { PatientApiService } from '../../../../core/services/patient-api.service';
 import { AppointmentPdfService } from '../../services/appointment-pdf.service';
 import { LoadingOverlay } from '../../../../shared/ui/loading-overlay/loading-overlay';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 
 export interface CitaMedica {
     id: number;
@@ -45,8 +47,10 @@ export interface CitaMedica {
     AvatarModule,
     TooltipModule,
     Header,
-    LoadingOverlay
+    LoadingOverlay,
+    ConfirmDialogModule
 ],
+    providers: [ConfirmationService],
     templateUrl: './appointment-list.html',
     styleUrl: './appointment-list.scss'
 })
@@ -71,6 +75,7 @@ export class AppointmentListComponent implements OnInit {
         private readonly messageService: MessageService,
         private readonly cdr: ChangeDetectorRef,
         private readonly appointmentPdf: AppointmentPdfService,
+        private readonly confirmationService: ConfirmationService,
     ) {}
 
     ngOnInit() {
@@ -125,36 +130,46 @@ export class AppointmentListComponent implements OnInit {
             return;
         }
 
-        this.loading = true;
-        this.patientApi
-            .cancelAppointment(cita.id, idPaciente)
-            .pipe(
-                finalize(() => {
-                    this.loading = false;
-                    this.cdr.markForCheck();
-                }),
-            )
-            .subscribe({
-                next: (res) => {
-                    this.citas = this.citas.filter((x) => x.id !== cita.id);
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Cita cancelada',
-                        detail: res?.mensaje ?? 'La cita fue cancelada correctamente.',
+        this.confirmationService.confirm({
+            message: 'Al cancelar esta cita, la factura asociada será anulada automáticamente. ¿Deseas continuar?',
+            header: 'Confirmar cancelación',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Sí, cancelar',
+            rejectLabel: 'No',
+            acceptButtonStyleClass: 'p-button-danger',
+            accept: () => {
+                this.loading = true;
+                this.patientApi
+                    .cancelAppointment(cita.id, idPaciente)
+                    .pipe(
+                        finalize(() => {
+                            this.loading = false;
+                            this.cdr.markForCheck();
+                        }),
+                    )
+                    .subscribe({
+                        next: (res) => {
+                            this.citas = this.citas.filter((x) => x.id !== cita.id);
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Cita cancelada',
+                                detail: (res?.mensaje ?? 'La cita fue cancelada correctamente.') + ' La factura asociada ha sido anulada.',
+                            });
+                            this.cdr.markForCheck();
+                        },
+                        error: (err) => {
+                            console.error('Error cancelando cita:', err);
+                            const msg = err?.error?.mensaje ?? 'No se pudo cancelar la cita.';
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Cancelar cita',
+                                detail: msg,
+                            });
+                            this.cdr.markForCheck();
+                        },
                     });
-                    this.cdr.markForCheck();
-                },
-                error: (err) => {
-                    console.error('Error cancelando cita:', err);
-                    const msg = err?.error?.mensaje ?? 'No se pudo cancelar la cita.';
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Cancelar cita',
-                        detail: msg,
-                    });
-                    this.cdr.markForCheck();
-                },
-            });
+            },
+        });
     }
 
     formatFecha(fechaYmd: string): string {

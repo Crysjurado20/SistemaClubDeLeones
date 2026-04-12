@@ -3,172 +3,99 @@
 <p-toast position="top-right"></p-toast>
 <app-loading-overlay [show]="isLoading()" />
 
-<div
-  class="relative flex-1 flex items-center justify-center p-4 pt-16 md:p-8 md:pt-20 overflow-hidden"
->
-  <div class="absolute left-4 top-4 z-20">
-    <button
-      pButton
-      type="button"
-      icon="pi pi-arrow-left"
-      label="Regresar"
-      class="p-button-text p-button-secondary"
-      [disabled]="isLoading()"
-      routerLink="/landing"
-    ></button>
-  </div>
-
-  <div aria-hidden="true" class="pointer-events-none absolute inset-0">
-    <div class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"></div>
-    <div class="absolute -left-56 top-24 w-[34rem] h-16 bg-yellow-300 -rotate-45 opacity-70"></div>
-    <div
-      class="absolute -left-56 top-20 w-[36rem] h-1 -rotate-45"
-      style="background-color: var(--primary-color)"
-    ></div>
-    <div
-      class="absolute left-14 bottom-24 w-16 h-16 rounded-full bg-surface-200 dark:bg-surface-700 opacity-80"
-    ></div>
-    <div
-      class="absolute right-16 bottom-36 w-20 h-20 rounded-full opacity-70 flex items-center justify-center shadow-lg"
-      style="background-color: var(--primary-color)"
-    >
-      <span
-        class="text-yellow-400 font-serif font-bold text-5xl drop-shadow-md"
-        style="font-family: 'Times New Roman', serif"
-        >L</span
-      >
+<div class="relative flex-1 flex items-center justify-center p-4 pt-16 md:p-8 md:pt-20 overflow-hidden">
+    <div class="absolute left-4 top-4 z-20">
+        <button pButton type="button" icon="pi pi-arrow-left" label="Regresar" class="p-button-text p-button-secondary"
+            [disabled]="isLoading()" routerLink="/landing"></button>
     </div>
-    <svg
-      class="absolute -left-40 -bottom-40 w-[520px] h-[520px] opacity-95"
-      viewBox="0 0 600 600"
-      fill="none"
-    >
-      <path
-        d="M120 480C180 330 320 250 480 240"
-        stroke="var(--primary-color)"
-        stroke-width="26"
-        stroke-linecap="round"
-      />
-      <path
-        d="M170 520C250 330 390 270 540 260"
-        class="text-yellow-400"
-        stroke="currentColor"
-        stroke-width="26"
-        stroke-linecap="round"
-      />
-    </svg>
-  </div>
 
-  <div class="relative z-10 flex flex-col items-center justify-center">
-    <div
-      style="
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0">
+        <div class="absolute -left-40 top-10 w-[34rem] h-16 bg-yellow-400 -rotate-45 opacity-90"></div>
+        <div class="absolute -left-56 top-24 w-[34rem] h-16 bg-yellow-300 -rotate-45 opacity-70"></div>
+        <div class="absolute -left-56 top-20 w-[36rem] h-1 -rotate-45" style="background-color: var(--primary-color)">
+        </div>
+        <div class="absolute left-14 bottom-24 w-16 h-16 rounded-full bg-surface-200 dark:bg-surface-700 opacity-80">
+        </div>
+        <div class="absolute right-16 bottom-36 w-20 h-20 rounded-full opacity-70 flex items-center justify-center shadow-lg"
+            style="background-color: var(--primary-color)">
+            <span class="text-yellow-400 font-serif font-bold text-5xl drop-shadow-md"
+                style="font-family: 'Times New Roman', serif">L</span>
+        </div>
+        <svg class="absolute -left-40 -bottom-40 w-[520px] h-[520px] opacity-95" viewBox="0 0 600 600" fill="none">
+            <path d="M120 480C180 330 320 250 480 240" stroke="var(--primary-color)" stroke-width="26"
+                stroke-linecap="round" />
+            <path d="M170 520C250 330 390 270 540 260" class="text-yellow-400" stroke="currentColor" stroke-width="26"
+                stroke-linecap="round" />
+        </svg>
+    </div>
+
+    <div class="relative z-10 flex flex-col items-center justify-center">
+        <div style="
         border-radius: 56px;
         padding: 0.3rem;
         background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%);
-      "
-    >
-      <div
-        class="w-full bg-surface-0 dark:bg-surface-900 py-20 px-8 sm:px-20"
-        style="border-radius: 53px"
-      >
-        <div class="text-center mb-8">
-          <img
-            src="img/logo_Leones.png"
-            alt="Club de Leones"
-            class="mb-8 w-24 shrink-0 mx-auto h-auto object-contain"
-          />
-          <div class="text-surface-900 dark:text-surface-0 text-2xl font-medium mb-4">
-            Iniciar sesión en tu cuenta
-          </div>
-          <span class="text-muted-color font-medium"></span>
-        </div>
+      ">
+            <div class="w-full bg-surface-0 dark:bg-surface-900 py-20 px-8 sm:px-20" style="border-radius: 53px">
+                <div class="text-center mb-8">
+                    <img ngSrc="/img/logo_Leones.png" alt="Club de Leones"
+                        class="mb-8 w-24 shrink-0 mx-auto h-auto object-contain" width="96" height="96" />
+                    <div class="text-surface-900 dark:text-surface-0 text-2xl font-medium mb-4">
+                        Iniciar sesión en tu cuenta
+                    </div>
+                    <span class="text-muted-color font-medium"></span>
+                </div>
 
-        <div>
-          <div class="mb-6">
-            <label
-              for="email1"
-              class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2"
-              >Correo Electrónico</label
-            >
-            <p-inputgroup class="mb-1">
-              <p-inputgroup-addon>
-                <i class="pi pi-envelope"></i>
-              </p-inputgroup-addon>
-              <input
-                pInputText
-                class="p-inputtext-lg"
-                id="email1"
-                type="email"
-                placeholder="Correo electrónico"
-                [(ngModel)]="credenciales.correo"
-                name="correo"
-                #correoModel="ngModel"
-                required
-                email
-              />
-            </p-inputgroup>
+                <div>
+                    <div class="mb-6">
+                        <label for="email1"
+                            class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Correo
+                            Electrónico</label>
+                        <p-inputgroup class="mb-1">
+                            <p-inputgroup-addon>
+                                <i class="pi pi-envelope"></i>
+                            </p-inputgroup-addon>
+                            <input pInputText class="p-inputtext-lg" id="email1" type="email"
+                                placeholder="Correo electrónico" [(ngModel)]="credenciales.correo" name="correo"
+                                #correoModel="ngModel" required email />
+                        </p-inputgroup>
 
-            <app-field-error
-              [control]="correoModel"
-              [submitted]="submitted()"
-              [messages]="{ required: 'El correo es obligatorio.', email: 'Ingresa un correo válido.' }"
-            />
-          </div>
+                        <app-field-error [control]="correoModel" [submitted]="submitted()"
+                            [messages]="{ required: 'El correo es obligatorio.', email: 'Ingresa un correo válido.' }" />
+                    </div>
 
-          <div class="mb-2">
-            <label
-              for="password1"
-              class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2"
-              >Contraseña</label
-            >
-            <p-inputgroup class="mb-1">
-              <p-inputgroup-addon>
-                <i class="pi pi-lock"></i>
-              </p-inputgroup-addon>
-              <p-password
-                id="password1"
-                [(ngModel)]="credenciales.contrasena"
-                name="contrasena"
-                #contrasenaModel="ngModel"
-                placeholder="Contraseña"
-                [toggleMask]="true"
-                [feedback]="false"
-                [fluid]="true"
-                inputStyleClass="p-inputtext-lg"
-                required
-              ></p-password>
-            </p-inputgroup>
+                    <div class="mb-2">
+                        <label for="password1"
+                            class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Contraseña</label>
+                        <p-inputgroup class="mb-1">
+                            <p-inputgroup-addon>
+                                <i class="pi pi-lock"></i>
+                            </p-inputgroup-addon>
+                            <p-password id="password1" [(ngModel)]="credenciales.contrasena" name="contrasena"
+                                #contrasenaModel="ngModel" placeholder="Contraseña" [toggleMask]="true"
+                                [feedback]="false" [fluid]="true" inputStyleClass="p-inputtext-lg"
+                                required></p-password>
+                        </p-inputgroup>
 
-            <app-field-error
-              [control]="contrasenaModel"
-              [submitted]="submitted()"
-              [messages]="{ required: 'La contraseña es obligatoria.' }"
-            />
-          </div>
+                        <app-field-error [control]="contrasenaModel" [submitted]="submitted()"
+                            [messages]="{ required: 'La contraseña es obligatoria.' }" />
+                    </div>
 
-          <div class="flex items-center justify-between mt-2 mb-8 gap-8">
-            <div class="flex items-center">
-              <p-checkbox [(ngModel)]="checked" id="rememberme1" binary class="mr-2"></p-checkbox>
-              <label for="rememberme1">Recordarme</label>
+                    <div class="flex items-center justify-between mt-2 mb-8 gap-8">
+                        <div class="flex items-center">
+                            <p-checkbox [(ngModel)]="checked" id="rememberme1" binary class="mr-2"></p-checkbox>
+                            <label for="rememberme1">Recordarme</label>
+                        </div>
+                        <a class="font-medium no-underline ml-2 text-right cursor-pointer text-primary"
+                            routerLink="/auth/olvide-mi-contrasena">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <p-button label="Iniciar sesión" styleClass="w-full" [disabled]="isLoading()"
+                        (onClick)="iniciarSesion()"></p-button>
+
+                    <div class="mt-4 text-center">
+                        <a class="font-medium text-primary cursor-pointer" routerLink="/auth/register">Crear cuenta</a>
+                    </div>
+                </div>
             </div>
-            <a
-              class="font-medium no-underline ml-2 text-right cursor-pointer text-primary"
-              routerLink="/auth/access"
-              >¿Olvidaste tu contraseña?</a
-            >
-          </div>
-          <p-button
-            label="Iniciar sesión"
-            styleClass="w-full"
-            [disabled]="isLoading()"
-            (onClick)="iniciarSesion()"
-          ></p-button>
-
-          <div class="mt-4 text-center">
-            <a class="font-medium text-primary cursor-pointer" routerLink="/auth/register">Crear cuenta</a>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>

@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router'; // Importante para la redirección
 import { InputTextModule } from 'primeng/inputtext';
@@ -25,6 +25,7 @@ import { finalize } from 'rxjs';
         CommonModule,
         FormsModule,
         RouterLink,
+        NgOptimizedImage,
         InputTextModule,
         PasswordModule,
         CheckboxModule,
@@ -41,10 +42,10 @@ import { finalize } from 'rxjs';
     templateUrl: './login.html'
 })
 export class Login {
-    
-     authApi = inject(AuthApiService);
-     sessionAuth = inject(SessionAuthService);
-     router = inject(Router);
+
+    authApi = inject(AuthApiService);
+    sessionAuth = inject(SessionAuthService);
+    router = inject(Router);
     messageService = inject(MessageService);
 
     checked = false;
@@ -56,93 +57,101 @@ export class Login {
         contrasena: ''
     };
 
-        private isValidEmail(value: string): boolean {
-            const v = (value ?? '').toString().trim();
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-        }
+    private normalizeLoginResponse(raw: unknown): { token: string; idUsuario: number; nombres: string; rol: string } {
+        const data = (raw ?? {}) as Record<string, unknown>;
+
+        const token = (data['token'] ?? data['Token'] ?? '').toString().trim();
+        const rol = (data['rol'] ?? data['Rol'] ?? '').toString().trim();
+        const nombres = (data['nombres'] ?? data['Nombres'] ?? '').toString().trim();
+        const idRaw = data['idUsuario'] ?? data['IdUsuario'];
+        const idUsuario = typeof idRaw === 'number' ? idRaw : Number(idRaw ?? 0);
+
+        return {
+            token,
+            idUsuario: Number.isFinite(idUsuario) && idUsuario > 0 ? idUsuario : 0,
+            nombres,
+            rol,
+        };
+    }
+
+    private isValidEmail(value: string): boolean {
+        const v = (value ?? '').toString().trim();
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    }
 
     iniciarSesion() {
-                if (this.isLoading()) {
-                    return;
-                }
-                this.submitted.set(true);
+        if (this.isLoading()) {
+            return;
+        }
+        this.submitted.set(true);
 
-                if (!this.credenciales.correo || !this.credenciales.contrasena) {
+        if (!this.credenciales.correo || !this.credenciales.contrasena) {
             this.messageService.clear();
             this.messageService.add({
-              severity: 'warn',
-              summary: 'Atención',
-                            detail: 'Revisa los campos marcados e inténtalo de nuevo.',
+                severity: 'warn',
+                summary: 'Atención',
+                detail: 'Revisa los campos marcados e inténtalo de nuevo.',
             });
             return;
         }
 
-                if (!this.isValidEmail(this.credenciales.correo)) {
-                    this.messageService.clear();
-                    this.messageService.add({
-                        severity: 'warn',
-                        summary: 'Atención',
-                        detail: 'Ingresa un correo válido.',
-                    });
-                    return;
-                }
+        if (!this.isValidEmail(this.credenciales.correo)) {
+            this.messageService.clear();
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Atención',
+                detail: 'Ingresa un correo válido.',
+            });
+            return;
+        }
 
         this.isLoading.set(true);
 
         this.authApi
-          .login(this.credenciales)
-                    .pipe(finalize(() => this.isLoading.set(false)))
-          .subscribe({
-            next: (respuesta) => {
-                                // Limpia cualquier sesión anterior (por ejemplo tokens viejos en access_token/jwt)
-                                // para evitar desincronización entre el JWT (guards/interceptor) y localStorage.usuario.
-                                this.sessionAuth.logout();
+            .login(this.credenciales)
+            .pipe(finalize(() => this.isLoading.set(false)))
+            .subscribe({
+                next: (respuesta) => {
+                    const normalized = this.normalizeLoginResponse(respuesta);
+                    if (!normalized.token) {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'No se pudo iniciar sesión',
+                            detail: 'El servidor no devolvió un token válido.',
+                        });
+                        return;
+                    }
 
-                localStorage.setItem('token', respuesta.token);
-                localStorage.setItem('userLabel', respuesta.nombres);
-                                localStorage.setItem('usuario', JSON.stringify({
-                    idUsuario: respuesta.idUsuario,
-                    nombres: respuesta.nombres,
-                    rol: respuesta.rol
-                }));
+                    // Limpia cualquier sesión anterior (por ejemplo tokens viejos en access_token/jwt)
+                    // para evitar desincronización entre el JWT (guards/interceptor) y localStorage.usuario.
+                    this.sessionAuth.logout();
 
-                                const rol = (respuesta.rol ?? '').toString().trim().toLowerCase();
-                                if (rol === 'administrador') {
-                                    void this.router.navigate(['/reports-dashboard']);
-                                    return;
-                                }
-                                if (rol === 'medico' || rol === 'médico') {
-                                    void this.router.navigate(['/weekly-agenda']);
-                                    return;
-                                }
-                                if (rol === 'paciente') {
-                                    void this.router.navigate(['/appointments']);
-                                    return;
-                                }
+                    localStorage.setItem('token', normalized.token);
+                    localStorage.setItem('userLabel', normalized.nombres);
+                    localStorage.setItem('usuario', JSON.stringify({
+                        idUsuario: normalized.idUsuario,
+                        nombres: normalized.nombres,
+                        rol: normalized.rol
+                    }));
 
-                                void this.router.navigate(['/landing']);
-            },
-            error: (err) => {
-                console.error('Error en login:', err);
-                this.messageService.add({
-                  severity: 'error',
-                  summary: 'No se pudo iniciar sesión',
-                  detail: err.error?.mensaje || 'Credenciales incorrectas. Intenta de nuevo.',
-                });
-            }
-        });
+                    const roleForHome = normalized.rol || this.sessionAuth.getPrimaryAppRole();
+                    const homeRoute = this.sessionAuth.getHomeRouteByRole(roleForHome);
+                    void this.router.navigateByUrl(homeRoute);
+                },
+                error: (err) => {
+                    console.error('Error en login:', err);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'No se pudo iniciar sesión',
+                        detail: err.error?.mensaje || 'Credenciales incorrectas. Intenta de nuevo.',
+                    });
+                }
+            });
     }
 
-        loginMock(role: 'ADMIN' | 'DOCTOR' | 'PATIENT') {
-            this.sessionAuth.loginMock(role);
-            if (role === 'ADMIN') {
-                void this.router.navigate(['/reports-dashboard']);
-                return;
-            }
-            if (role === 'DOCTOR') {
-                void this.router.navigate(['/weekly-agenda']);
-                return;
-            }
-            void this.router.navigate(['/appointments']);
-        }
+    loginMock(role: 'ADMIN' | 'MEDICO' | 'PATIENT') {
+        this.sessionAuth.loginMock(role);
+        const homeRoute = this.sessionAuth.getHomeRouteByRole(role);
+        void this.router.navigateByUrl(homeRoute);
+    }
 }

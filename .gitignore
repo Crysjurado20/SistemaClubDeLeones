@@ -13,6 +13,8 @@ yarn-error.log
 
 # IDEs and editors
 .idea/
+.agents/
+skills-lock.json
 .project
 .classpath
 .c9/

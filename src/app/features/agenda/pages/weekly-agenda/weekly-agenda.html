@@ -1,456 +1,349 @@
-<app-header
-  [title]="hospitalNombre"
-  [showActions]="true"
-  [showThemeToggle]="false"
-  [showUser]="true"
-  [userLabel]="headerUserLabel"
-  [showLogout]="true"
-  logoutLink="/auth/login"
->
+<app-header [title]="hospitalNombre" [showActions]="true" [showThemeToggle]="true" [showUser]="true"
+    [userLabel]="headerUserLabel" [showLogout]="true" logoutLink="/auth/login">
 </app-header>
 
 <div class="pt-16 pb-6">
-  <p-tabs class="w-full agenda-tabs px-4 md:px-6" [value]="activeTab" (valueChange)="onTabValueChange($event)">
-    <p-tablist>
-      <p-tab *ngFor="let tab of navTabs" [value]="tab.value">
-        <i class="mr-2" [ngClass]="tab.icon"></i>
-        <span>{{ tab.label }}</span>
-      </p-tab>
-    </p-tablist>
-  </p-tabs>
+    <p-tabs class="w-full agenda-tabs px-4 md:px-6" [value]="activeTab" (valueChange)="onTabValueChange($event)">
+        <p-tablist>
+            <p-tab *ngFor="let tab of navTabs" [value]="tab.value">
+                <i class="mr-2" [ngClass]="tab.icon"></i>
+                <span>{{ tab.label }}</span>
+            </p-tab>
+        </p-tablist>
+    </p-tabs>
 
-  <div class="px-4 md:px-6 pt-4">
-    <div class="flex flex-col gap-4">
+    <div class="px-4 md:px-6 pt-4">
+        <div class="flex flex-col gap-4">
 
-  <p-card styleClass="shadow-sm">
-    <div class="flex items-center justify-between flex-wrap gap-3">
-      <div class="flex items-center gap-2 flex-wrap">
-    <p-button
-      icon="pi pi-chevron-left"
-      severity="secondary"
-      [text]="true"
-      (onClick)="semanaAnterior()"
-    ></p-button>
-    <span class="font-medium text-lg whitespace-nowrap text-surface-900 dark:text-surface-0">{{ labelSemana }}</span>
-    <p-button
-      icon="pi pi-chevron-right"
-      severity="secondary"
-      [text]="true"
-      (onClick)="semanaSiguiente()"
-    ></p-button>
-    <p-button
-      label="Hoy"
-      severity="secondary"
-      [outlined]="true"
-      size="small"
-      (onClick)="irAHoy()"
-    ></p-button>
+            <p-card styleClass="shadow-sm">
+                <div class="flex items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p-button icon="pi pi-chevron-left" severity="secondary" [text]="true"
+                            (onClick)="semanaAnterior()"></p-button>
+                        <span class="font-medium text-lg whitespace-nowrap text-surface-900 dark:text-surface-0">{{
+                            labelSemana }}</span>
+                        <p-button icon="pi pi-chevron-right" severity="secondary" [text]="true"
+                            (onClick)="semanaSiguiente()"></p-button>
+                        <p-button label="Hoy" severity="secondary" [outlined]="true" size="small"
+                            (onClick)="irAHoy()"></p-button>
 
-        <div class="flex items-center gap-2">
-          <i class="pi pi-calendar text-surface-700 dark:text-surface-200" aria-hidden="true"></i>
-          <input
-            type="month"
-            pInputText
-            class="w-40"
-            [(ngModel)]="mesSeleccionado"
-            (ngModelChange)="onMesChange($event)"
-            aria-label="Seleccionar mes"
-          />
-        </div>
-      </div>
+                        <div class="flex items-center gap-2">
+                            <i class="pi pi-calendar text-surface-700 dark:text-surface-200" aria-hidden="true"></i>
+                            <input type="month" pInputText class="w-40" [(ngModel)]="mesSeleccionado"
+                                (ngModelChange)="onMesChange($event)" aria-label="Seleccionar mes" />
+                        </div>
+                    </div>
 
-      <div class="flex flex-col items-end gap-2">
-        @if (especialidadOptions.length > 0) {
-          <div class="flex items-center gap-2">
-            <i class="pi pi-briefcase text-surface-700 dark:text-surface-200" aria-hidden="true"></i>
-            <p-select
-              [options]="especialidadOptions"
-              [(ngModel)]="especialidadSeleccionada"
-              optionLabel="label"
-              optionValue="value"
-              appendTo="body"
-              placeholder="Especialidad"
-              styleClass="w-56"
-              (ngModelChange)="onEspecialidadHeaderChange()"
-            ></p-select>
-          </div>
-        }
+                    <div class="flex flex-col items-end gap-2">
+                        @if (especialidadOptions.length > 0) {
+                        <div class="flex items-center gap-2">
+                            <i class="pi pi-briefcase text-surface-700 dark:text-surface-200" aria-hidden="true"></i>
+                            <p-select [options]="especialidadOptions" [(ngModel)]="especialidadSeleccionada"
+                                optionLabel="label" optionValue="value" appendTo="body" placeholder="Especialidad"
+                                styleClass="w-56" (ngModelChange)="onEspecialidadHeaderChange()"></p-select>
+                        </div>
+                        }
 
-        <div class="flex flex-wrap gap-4 items-center agenda-estados justify-end">
-          <span class="text-sm font-medium text-surface-600 dark:text-surface-300">Estados:</span>
-          <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
-            <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span> Atendido
-          </span>
-          <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
-            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Pendiente de atención
-          </span>
-          <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
-            <span class="w-2.5 h-2.5 rounded-full bg-surface-500"></span> Pendiente pago
-          </span>
-          <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
-            <span class="w-2.5 h-2.5 rounded-full bg-surface-400"></span> Bloqueado
-          </span>
-        </div>
-      </div>
-    </div>
-  </p-card>
+                        <div class="flex flex-wrap gap-4 items-center agenda-estados justify-end">
+                            <span class="text-sm font-medium text-surface-600 dark:text-surface-300">Estados:</span>
+                            <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span> Atendido
+                            </span>
+                            <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Pendiente de atención
+                            </span>
+                            <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-surface-500"></span> Pendiente pago
+                            </span>
+                            <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-surface-400"></span> Bloqueado
+                            </span>
+                            <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Cancelado
+                            </span>
+                            <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> No asistió
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </p-card>
 
-<p-card styleClass="shadow-sm overflow-hidden">
-  <div class="overflow-x-auto">
-    <div class="min-w-[860px]">
-      <div class="grid w-full border-b border-surface-200 dark:border-surface-700" [style.gridTemplateColumns]="gridTemplateColumns">
-        <div class="bg-surface-50 dark:bg-surface-800"></div>
-        <div
-          *ngFor="let dia of diasSemana"
-          class="text-center py-2 border-l border-surface-200 dark:border-surface-700"
-          [ngClass]="
+            <p-card styleClass="shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <div class="min-w-[860px]">
+                        <div class="grid w-full border-b border-surface-200 dark:border-surface-700"
+                            [style.gridTemplateColumns]="gridTemplateColumns">
+                            <div class="bg-surface-50 dark:bg-surface-800"></div>
+                            <div *ngFor="let dia of diasSemana"
+                                class="text-center py-2 border-l border-surface-200 dark:border-surface-700" [ngClass]="
             isDiaBloqueado(dia.fecha)
               ? 'bg-orange-200 dark:bg-orange-950/30 border-b-2 border-orange-500'
               : (dia.esHoy ? 'bg-primary-50/30 dark:bg-primary-950/20' : 'bg-surface-50 dark:bg-surface-800')
-          "
-        >
-          <div class="text-xs text-surface-600 dark:text-surface-300 uppercase font-medium tracking-widest">
-            {{ dia.abrev }}
-          </div>
-          <div
-            class="text-2xl font-medium mt-1 w-8 h-8 rounded-full flex items-center justify-center mx-auto"
-            [ngClass]="dia.esHoy ? 'bg-primary text-primary-contrast' : 'text-surface-700 dark:text-surface-100'"
-          >
-            {{ dia.fecha | date: 'd' }}
-          </div>
-        </div>
-      </div>
+          ">
+                                <div
+                                    class="text-xs text-surface-600 dark:text-surface-300 uppercase font-medium tracking-widest">
+                                    {{ dia.abrev }}
+                                </div>
+                                <div class="text-2xl font-medium mt-1 w-8 h-8 rounded-full flex items-center justify-center mx-auto"
+                                    [ngClass]="dia.esHoy ? 'bg-primary text-primary-contrast' : 'text-surface-700 dark:text-surface-100'">
+                                    {{ dia.fecha | date: 'd' }}
+                                </div>
+                            </div>
+                        </div>
 
-      <p-scrollPanel [style]="{ height: '480px' }" styleClass="w-full">
-        <div>
-          <div
-            *ngFor="let slot of slots"
-            class="grid min-h-[60px] border-b border-surface-100 dark:border-surface-800 w-full"
-            [style.gridTemplateColumns]="gridTemplateColumns"
-          >
-            <div class="w-[54px] min-w-[54px] flex items-start pt-2 px-2 bg-surface-0 dark:bg-surface-900">
-              <span class="text-xs text-surface-500">{{ slot.hora }}</span>
-            </div>
+                        <p-scrollPanel [style]="{ height: '480px' }" styleClass="w-full">
+                            <div>
+                                <div *ngFor="let slot of slots"
+                                    class="grid min-h-[60px] border-b border-surface-100 dark:border-surface-800 w-full"
+                                    [style.gridTemplateColumns]="gridTemplateColumns">
+                                    <div
+                                        class="w-[54px] min-w-[54px] flex items-start pt-2 px-2 bg-surface-0 dark:bg-surface-900">
+                                        <span class="text-xs text-surface-500">{{ slot.hora }}</span>
+                                    </div>
 
-            <div
-              *ngFor="let dia of diasSemana"
-              class="min-h-[60px] border-l border-surface-100 dark:border-surface-800 p-1 transition-colors duration-150"
-              [ngClass]="[
+                                    <div *ngFor="let dia of diasSemana"
+                                        class="min-h-[60px] border-l border-surface-100 dark:border-surface-800 p-1 transition-colors duration-150"
+                                        [ngClass]="[
                 isDiaBloqueado(dia.fecha)
                   ? 'bg-orange-100/70 dark:bg-orange-950/20 cursor-not-allowed'
                   : (dia.esHoy ? 'bg-primary-50/10 dark:bg-primary-950/10' : 'bg-surface-0 dark:bg-surface-900'),
                 getClaseCelda(dia.fecha, slot.hora)
-              ]"
-            >
-              <button
-                *ngIf="isSlotDisponible(dia.fecha, slot.hora)"
-                type="button"
-                class="w-full min-h-[56px] bg-transparent border-none p-0 m-0 slot-empty-btn"
-                (click)="abrirNuevaCita(dia.fecha, slot.hora)"
-                aria-label="Crear nueva cita"
-              ></button>
+              ]">
+                                        <button *ngIf="isSlotDisponible(dia.fecha, slot.hora)" type="button"
+                                            class="w-full min-h-[56px] bg-transparent border-none p-0 m-0 slot-empty-btn"
+                                            (click)="abrirNuevaCita(dia.fecha, slot.hora)"
+                                            aria-label="Crear nueva cita"></button>
 
-              <ng-container *ngFor="let turno of getTurnosEnSlot(dia.fecha, slot.hora)">
-                <button
-                  type="button"
-                  class="w-full text-left border-l-[3px] rounded p-2 mb-1 cursor-pointer transition-all hover:brightness-95 text-sm shadow-sm"
-                  [ngClass]="[
+                                        <ng-container *ngFor="let turno of getTurnosEnSlot(dia.fecha, slot.hora)">
+                                            <button type="button"
+                                                class="w-full text-left border-l-[3px] rounded p-2 mb-1 cursor-pointer transition-all hover:brightness-95 text-sm shadow-sm"
+                                                [ngClass]="[
                     getClaseTurno(turno.estado),
                     isDiaBloqueado(dia.fecha) ? 'weekly-turno-bloqueado' : ''
-                  ]"
-                  [pTooltip]="getTooltipTurno(turno)"
-                  tooltipPosition="top"
-                  (click)="$event.stopPropagation(); verDetalle(turno)"
-                >
-                  <div class="font-medium text-xs truncate">
-                    {{
-                      turno.paciente
-                        ? turno.paciente.nombre + ' ' + turno.paciente.apellido
-                        : turno.motivo
-                    }}
-                  </div>
-                  <div class="text-[10px] opacity-75 mt-1">
-                    {{ turno.horaInicio }}–{{ turno.horaFin }}
-                  </div>
-                </button>
-              </ng-container>
-            </div>
-          </div>
-        </div>
-      </p-scrollPanel>
-    </div>
-  </div>
-</p-card>
+                  ]" [pTooltip]="getTooltipTurno(turno)" tooltipPosition="top"
+                                                (click)="$event.stopPropagation(); verDetalle(turno)">
+                                                <div class="font-medium text-xs truncate">
+                                                    {{
+                                                    turno.paciente
+                                                    ? turno.paciente.nombre + ' ' + turno.paciente.apellido
+                                                    : turno.motivo
+                                                    }}
+                                                </div>
+                                                <div class="text-[10px] opacity-75 mt-1">
+                                                    {{ turno.horaInicio }}–{{ turno.horaFin }}
+                                                </div>
+                                            </button>
+                                        </ng-container>
+                                    </div>
+                                </div>
+                            </div>
+                        </p-scrollPanel>
+                    </div>
+                </div>
+            </p-card>
 
-<p-dialog
-  [(visible)]="mostrarNuevaCita"
-  [modal]="true"
-  [draggable]="false"
-  [resizable]="false"
-  [header]="modoReagendar ? 'Reagendar cita' : 'Nueva cita'"
-  [style]="{ width: '42rem', maxWidth: '95vw' }"
-  (onHide)="cerrarNuevaCita()"
->
-  <div class="flex flex-col gap-3">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <div class="md:col-span-2">
-        <label class="text-sm font-medium block mb-2" for="paciente">Paciente</label>
-        @if (!modoReagendar) {
-          <p-select
-            inputId="paciente"
-            [options]="pacientesOptions"
-            [(ngModel)]="pacienteSeleccionado"
-            optionLabel="label"
-            [filter]="true"
-            filterBy="label,cedula,nombres,apellidos,hc"
-            [showClear]="true"
-            appendTo="body"
-            styleClass="w-full"
-            placeholder="Buscar por cédula o nombres"
-          ></p-select>
-        } @else {
-          <input
-            pInputText
-            id="paciente"
-            class="w-full"
-            [value]="pacienteSeleccionado ? (pacienteSeleccionado.apellidos + ' ' + pacienteSeleccionado.nombres + ' · ' + pacienteSeleccionado.cedula) : '—'"
-            disabled
-          />
-        }
-      </div>
+            <p-dialog [(visible)]="mostrarNuevaCita" [modal]="true" [draggable]="false" [resizable]="false"
+                [header]="modoReagendar ? 'Reagendar cita' : 'Nueva cita'"
+                [style]="{ width: '42rem', maxWidth: '95vw' }" (onHide)="cerrarNuevaCita()">
+                <div class="flex flex-col gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="md:col-span-2">
+                            <label class="text-sm font-medium block mb-2" for="paciente">Paciente</label>
+                            @if (!modoReagendar) {
+                            <p-select inputId="paciente" [options]="pacientesOptions" [(ngModel)]="pacienteSeleccionado"
+                                optionLabel="label" [filter]="true" filterBy="label,cedula,nombres,apellidos,hc"
+                                [showClear]="true" appendTo="body" styleClass="w-full"
+                                placeholder="Buscar por cédula o nombres"></p-select>
+                            } @else {
+                            <input pInputText id="paciente" class="w-full"
+                                [value]="pacienteSeleccionado ? (pacienteSeleccionado.apellidos + ' ' + pacienteSeleccionado.nombres + ' · ' + pacienteSeleccionado.cedula) : '—'"
+                                disabled />
+                            }
+                        </div>
 
-      @if (!modoReagendar) {
-        <div>
-          <label class="text-sm font-medium block mb-2" for="fecha">Fecha</label>
-          <input
-            pInputText
-            id="fecha"
-            class="w-full"
-            [value]="slotSeleccionado ? slotSeleccionado.fecha.toLocaleDateString('es-EC') : ''"
-            disabled
-          />
-        </div>
+                        @if (!modoReagendar) {
+                        <div>
+                            <label class="text-sm font-medium block mb-2" for="fecha">Fecha</label>
+                            <input pInputText id="fecha" class="w-full"
+                                [value]="slotSeleccionado ? slotSeleccionado.fecha.toLocaleDateString('es-EC') : ''"
+                                disabled />
+                        </div>
 
-        <div>
-          <label class="text-sm font-medium block mb-2" for="hora">Hora</label>
-          <input pInputText id="hora" class="w-full" [value]="slotSeleccionado ? slotSeleccionado.hora : ''" disabled />
-        </div>
-      } @else {
-        <div class="md:col-span-2">
-          <label class="text-sm font-medium block mb-2" for="slotReagendar">Nuevo horario</label>
-          <p-select
-            inputId="slotReagendar"
-            [options]="slotReagendarOpciones"
-            [(ngModel)]="slotReagendarSeleccionado"
-            optionLabel="label"
-            optionValue="value"
-            [filter]="true"
-            filterBy="label"
-            [showClear]="true"
-            appendTo="body"
-            styleClass="w-full"
-            placeholder="Seleccione un horario disponible"
-          ></p-select>
-        </div>
-      }
+                        <div>
+                            <label class="text-sm font-medium block mb-2" for="hora">Hora</label>
+                            <input pInputText id="hora" class="w-full"
+                                [value]="slotSeleccionado ? slotSeleccionado.hora : ''" disabled />
+                        </div>
+                        } @else {
+                        <div class="md:col-span-2">
+                            <label class="text-sm font-medium block mb-2" for="slotReagendar">Nuevo horario</label>
+                            <p-select inputId="slotReagendar" [options]="slotReagendarOpciones"
+                                [(ngModel)]="slotReagendarSeleccionado" optionLabel="label" optionValue="value"
+                                [filter]="true" filterBy="label" [showClear]="true" appendTo="body" styleClass="w-full"
+                                placeholder="Seleccione un horario disponible"></p-select>
+                        </div>
+                        }
 
-      <div>
-        <label class="text-sm font-medium block mb-2" for="doctor">Doctor</label>
-        @if (!modoReagendar) {
-          <p-select
-            inputId="doctor"
-            [options]="doctoresOptions"
-            [(ngModel)]="doctorSeleccionado"
-            optionLabel="label"
-            optionValue="value"
-            appendTo="body"
-            styleClass="w-full"
-            placeholder="Seleccione"
-            (ngModelChange)="onDoctorChange()"
-          ></p-select>
-        } @else {
-          <input
-            pInputText
-            id="doctor"
-            class="w-full"
-            [value]="getDoctorSeleccionadoLabel() || '—'"
-            disabled
-          />
-        }
-      </div>
+                        <div>
+                            <label class="text-sm font-medium block mb-2" for="doctor">Médico</label>
+                            @if (!modoReagendar) {
+                            <p-select inputId="doctor" [options]="doctoresOptions" [(ngModel)]="doctorSeleccionado"
+                                optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full"
+                                placeholder="Seleccione" (ngModelChange)="onDoctorChange()"></p-select>
+                            } @else {
+                            <input pInputText id="doctor" class="w-full" [value]="getDoctorSeleccionadoLabel() || '—'"
+                                disabled />
+                            }
+                        </div>
 
-      <div>
-        <label class="text-sm font-medium block mb-2" for="especialidad">Especialidad</label>
-        @if (!modoReagendar) {
-          <p-select
-            inputId="especialidad"
-            [options]="especialidadOptions"
-            [(ngModel)]="especialidadSeleccionada"
-            optionLabel="label"
-            optionValue="value"
-            appendTo="body"
-            styleClass="w-full"
-            placeholder="Seleccione"
-          ></p-select>
-        } @else {
-          <input
-            pInputText
-            id="especialidad"
-            class="w-full"
-            [value]="especialidadReagendarNombre ?? '—'"
-            disabled
-          />
-        }
-      </div>
+                        <div>
+                            <label class="text-sm font-medium block mb-2" for="especialidad">Especialidad</label>
+                            @if (!modoReagendar) {
+                            <p-select inputId="especialidad" [options]="especialidadOptions"
+                                [(ngModel)]="especialidadSeleccionada" optionLabel="label" optionValue="value"
+                                appendTo="body" styleClass="w-full" placeholder="Seleccione"></p-select>
+                            } @else {
+                            <input pInputText id="especialidad" class="w-full"
+                                [value]="especialidadReagendarNombre ?? '—'" disabled />
+                            }
+                        </div>
 
-      @if (!modoReagendar) {
-        <div class="md:col-span-2">
-          <label class="text-sm font-medium block mb-2" for="metodoPago">Método de pago (opcional)</label>
-          <p-select
-            inputId="metodoPago"
-            [options]="metodoPagoOptions"
-            [(ngModel)]="metodoPagoSeleccionado"
-            optionLabel="label"
-            optionValue="value"
-            appendTo="body"
-            styleClass="w-full"
-            placeholder="Seleccione"
-            (ngModelChange)="onMetodoPagoChange()"
-          ></p-select>
-        </div>
-      }
-    </div>
+                        @if (!modoReagendar) {
+                        <div class="md:col-span-2">
+                            <label class="text-sm font-medium block mb-2" for="metodoPago">Método de pago
+                                (opcional)</label>
+                            <p-select inputId="metodoPago" [options]="metodoPagoOptions"
+                                [(ngModel)]="metodoPagoSeleccionado" optionLabel="label" optionValue="value"
+                                appendTo="body" styleClass="w-full" placeholder="Seleccione"
+                                (ngModelChange)="onMetodoPagoChange()"></p-select>
+                        </div>
+                        }
+                    </div>
 
-    @if (!modoReagendar && metodoPagoSeleccionado === 'efectivo') {
-      <div class="border-1 border-surface-200 dark:border-surface-700 border-round p-3">
-        <div class="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <div class="font-medium">Pago en efectivo</div>
-            <div class="text-sm text-surface-500">Puede descargar el comprobante.</div>
-          </div>
-          <button
-            pButton
-            type="button"
-            label="Descargar comprobante"
-            icon="pi pi-download"
-            class="p-button-outlined"
-            [disabled]="!pacienteSeleccionado"
-            (click)="descargarComprobanteEfectivo()"
-          ></button>
-        </div>
-      </div>
-    }
+                    @if (!modoReagendar && metodoPagoSeleccionado === 'efectivo') {
+                    <div class="border-1 border-surface-200 dark:border-surface-700 border-round p-3">
+                        <div class="flex items-center justify-between gap-3 flex-wrap">
+                            <div>
+                                <div class="font-medium">Pago en efectivo</div>
+                                <div class="text-sm text-surface-500">Puede descargar el comprobante.</div>
+                            </div>
+                            <button pButton type="button" label="Descargar comprobante" icon="pi pi-download"
+                                class="p-button-outlined" [disabled]="!pacienteSeleccionado"
+                                (click)="descargarComprobanteEfectivo()"></button>
+                        </div>
+                    </div>
+                    }
 
-    @if (!modoReagendar && (metodoPagoSeleccionado === 'tarjeta' || metodoPagoSeleccionado === 'transferencia')) {
-      <div class="border-1 border-surface-200 dark:border-surface-700 border-round p-3">
-        <div class="font-medium mb-2">Código QR</div>
-        <div class="text-sm text-surface-500 mb-3">
-          Escanee para completar el pago.
-        </div>
+                    @if (!modoReagendar && (metodoPagoSeleccionado === 'tarjeta' || metodoPagoSeleccionado ===
+                    'transferencia')) {
+                    <div class="border-1 border-surface-200 dark:border-surface-700 border-round p-3">
+                        <div class="font-medium mb-2">Código QR</div>
+                        <div class="text-sm text-surface-500 mb-3">
+                            Escanee para completar el pago.
+                        </div>
 
-        @if (qrDataUrl) {
-          <div class="flex justify-center">
-            <img [src]="qrDataUrl" alt="QR" class="border-round border-1 border-surface-200" />
-          </div>
-        }
-      </div>
-    }
-  </div>
+                        @if (qrDataUrl) {
+                        <div class="flex justify-center">
+                            <img [src]="qrDataUrl" alt="QR" class="border-round border-1 border-surface-200" />
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
 
-  <ng-template pTemplate="footer">
-    <div class="flex justify-end gap-2">
-      <button pButton type="button" label="Cancelar" class="p-button-outlined" (click)="cerrarNuevaCita()"></button>
+                <ng-template pTemplate="footer">
+                    <div class="flex justify-end gap-2">
+                        <button pButton type="button" label="Cancelar" class="p-button-outlined"
+                            (click)="cerrarNuevaCita()"></button>
 
-      <button
-        pButton
-        type="button"
-        [label]="modoReagendar ? 'Guardar cambios' : 'Crear cita'"
-        icon="pi pi-check"
-        [disabled]="
+                        <button pButton type="button" [label]="modoReagendar ? 'Guardar cambios' : 'Crear cita'"
+                            icon="pi pi-check" [disabled]="
           modoReagendar
             ? (!slotReagendarSeleccionado || !doctorSeleccionado)
             : (!slotSeleccionado || !pacienteSeleccionado || !doctorSeleccionado || !especialidadSeleccionada)
-        "
-        (click)="crearCita()"
-      ></button>
-    </div>
-  </ng-template>
-</p-dialog>
+        " (click)="crearCita()"></button>
+                    </div>
+                </ng-template>
+            </p-dialog>
 
-<p-dialog
-  [(visible)]="mostrarAccionesCita"
-  [modal]="true"
-  [draggable]="false"
-  [resizable]="false"
-  header="Acciones de la cita"
-  [style]="{ width: '34rem', maxWidth: '95vw' }"
-  (onHide)="onAccionesHide()"
->
-  @if (turnoAcciones) {
-    <div class="flex flex-col gap-3">
-      <div class="flex items-start justify-between gap-3">
-        <div class="min-w-0">
-          <div class="font-semibold text-surface-900 dark:text-surface-0 truncate">
-            {{ turnoAcciones.paciente ? (turnoAcciones.paciente.apellido + ' ' + turnoAcciones.paciente.nombre) : 'Cita' }}
-          </div>
-          <div class="text-sm text-surface-600 dark:text-surface-300">
-            {{ turnoAcciones.fecha | date: 'dd/MM/yyyy' }} · {{ turnoAcciones.horaInicio }}–{{ turnoAcciones.horaFin }}
-          </div>
+            <p-dialog [(visible)]="mostrarAccionesCita" [modal]="true" [draggable]="false" [resizable]="false"
+                header="Acciones de la cita" [style]="{ width: '34rem', maxWidth: '95vw' }" (onHide)="onAccionesHide()">
+                @if (turnoAcciones) {
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="font-semibold text-surface-900 dark:text-surface-0 truncate">
+                                {{ turnoAcciones.paciente ? (turnoAcciones.paciente.apellido + ' ' +
+                                turnoAcciones.paciente.nombre) : 'Cita' }}
+                            </div>
+                            <div class="text-sm text-surface-600 dark:text-surface-300">
+                                {{ turnoAcciones.fecha | date: 'dd/MM/yyyy' }} · {{ turnoAcciones.horaInicio }}–{{
+                                turnoAcciones.horaFin }}
+                            </div>
+                        </div>
+                        <p-tag [value]="getLabelEstado(turnoAcciones.estado)"
+                            [severity]="getSeverity(turnoAcciones.estado)"></p-tag>
+                    </div>
+
+                    <p-divider styleClass="my-0"></p-divider>
+
+                    <div class="text-sm text-surface-600 dark:text-surface-300">
+                        Seleccione una acción.
+                    </div>
+                </div>
+                }
+
+                <ng-template pTemplate="footer">
+                    <div class="flex flex-col gap-2 w-full">
+                        <div class="flex items-center justify-end gap-2 w-full flex-wrap">
+                            @if (turnoAcciones?.estado === 'pendiente_pago') {
+                            <button pButton type="button" label="Confirmar pago" icon="pi pi-check" severity="success"
+                                class="p-button-sm flex-1 whitespace-nowrap" (click)="confirmarTurnoPagado()"></button>
+                            }
+
+                            <button pButton type="button" label="Reagendar" icon="pi pi-refresh" severity="secondary"
+                                class="p-button-sm p-button-outlined flex-1 whitespace-nowrap" [disabled]="
+            turnoAcciones?.estado === 'pendiente_pago' ||
+            turnoAcciones?.estado === 'atendido' ||
+            turnoAcciones?.estado === 'cancelado' ||
+            turnoAcciones?.estado === 'no_asistio'
+          " (click)="reagendarCita()"></button>
+
+                            <button pButton type="button" label="Cancelar cita" icon="pi pi-times" severity="danger"
+                                class="p-button-sm flex-1 whitespace-nowrap"
+                                [disabled]="turnoAcciones?.estado === 'atendido' || turnoAcciones?.estado === 'cancelado' || turnoAcciones?.estado === 'no_asistio'"
+                                (click)="cancelarCita()"></button>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 w-full flex-wrap">
+                            <button pButton type="button" label="No asistió" icon="pi pi-user-minus" severity="help"
+                                class="p-button-sm p-button-outlined flex-1 whitespace-nowrap" [disabled]="
+            turnoAcciones?.estado === 'atendido' ||
+            turnoAcciones?.estado === 'cancelado' ||
+            turnoAcciones?.estado === 'no_asistio' ||
+            turnoAcciones?.estado === 'ocupado' ||
+            turnoAcciones?.estado === 'bloqueado'
+          " (click)="marcarNoAsistio()"></button>
+
+                            <button pButton type="button" label="Ocupar" icon="pi pi-lock" severity="warn"
+                                class="p-button-sm p-button-outlined flex-1 whitespace-nowrap" [disabled]="
+            turnoAcciones?.estado === 'atendido' ||
+            turnoAcciones?.estado === 'cancelado' ||
+            turnoAcciones?.estado === 'ocupado'
+          " (click)="marcarOcupada()"></button>
+
+                            <button pButton type="button" label="Bloquear" icon="pi pi-ban" severity="secondary"
+                                class="p-button-sm p-button-outlined flex-1 whitespace-nowrap" [disabled]="
+            turnoAcciones?.estado === 'atendido' ||
+            turnoAcciones?.estado === 'cancelado' ||
+            turnoAcciones?.estado === 'bloqueado'
+          " (click)="marcarBloqueada()"></button>
+                        </div>
+                    </div>
+                </ng-template>
+            </p-dialog>
+
         </div>
-        <p-tag [value]="getLabelEstado(turnoAcciones.estado)" [severity]="getSeverity(turnoAcciones.estado)"></p-tag>
-      </div>
-
-      <p-divider styleClass="my-0"></p-divider>
-
-      <div class="text-sm text-surface-600 dark:text-surface-300">
-        Seleccione una acción.
-      </div>
     </div>
-  }
-
-  <ng-template pTemplate="footer">
-    <div class="flex items-center justify-end gap-2 w-full flex-nowrap">
-      @if (turnoAcciones?.estado === 'pendiente_pago') {
-        <button
-          pButton
-          type="button"
-          label="Confirmar pago"
-          icon="pi pi-check"
-          severity="success"
-          class="p-button-sm flex-1 whitespace-nowrap"
-          (click)="confirmarTurnoPagado()"
-        ></button>
-      }
-
-      <button
-        pButton
-        type="button"
-        label="Reagendar"
-        icon="pi pi-refresh"
-        severity="secondary"
-        class="p-button-sm p-button-outlined flex-1 whitespace-nowrap"
-        [disabled]="
-          turnoAcciones?.estado === 'pendiente_pago' ||
-          turnoAcciones?.estado === 'atendido' ||
-          turnoAcciones?.estado === 'cancelado'
-        "
-        (click)="reagendarCita()"
-      ></button>
-
-      <button
-        pButton
-        type="button"
-        label="Cancelar cita"
-        icon="pi pi-times"
-        severity="danger"
-        class="p-button-sm flex-1 whitespace-nowrap"
-        [disabled]="turnoAcciones?.estado === 'atendido' || turnoAcciones?.estado === 'cancelado'"
-        (click)="cancelarCita()"
-      ></button>
-    </div>
-  </ng-template>
-</p-dialog>
-
-    </div>
-  </div>
 </div>
