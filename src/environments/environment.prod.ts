@@ -1,4 +1,4 @@
 export const environment = {
-  production: true,
-  apiUrl: 'https://prohcl-bakend.onrender.com/api'
+    production: true,
+    apiUrl: 'http://localhost:8080/api'
 };

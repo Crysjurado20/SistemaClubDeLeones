@@ -1,4 +1,4 @@
-export type EstadoCita = 'atendido' | 'pendiente' | 'pendiente_pago' | 'ocupado' | 'bloqueado' | 'cancelado';
+export type EstadoCita = 'atendido' | 'pendiente' | 'pendiente_pago' | 'ocupado' | 'bloqueado' | 'cancelado' | 'no_asistio';
 
 export interface DailyAppointment {
   idCita: number;

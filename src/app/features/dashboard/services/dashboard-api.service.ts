@@ -3,30 +3,38 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
-export type DashboardKpis = {
-  totalPatients: number;
-  totalDoctors: number;
-  monthlyAppointments: number;
-  activeDoctors: number;
+export type DashboardAppointmentStateStat = {
+    codigo: string;
+    etiqueta: string;
+    cantidad: number;
 };
 
-export type DashboardCharts = {
-  appointmentsByMonth: Array<{ label: string; value: number }>;
-  busiestDoctors: Array<{ label: string; value: number }>;
-  patientsByAgeGroup: Array<{ label: string; value: number }>;
+export type DashboardSpecialtyStat = {
+    nombre: string;
+    cantidad: number;
 };
 
-export type DashboardResponse = {
-  kpis: DashboardKpis;
-  charts: DashboardCharts;
+export type DashboardMonthlyIncomeStat = {
+    etiqueta: string;
+    monto: number;
+};
+
+export type DashboardStatsResponse = {
+    citasPorEstado: DashboardAppointmentStateStat[];
+    especialidadesMasSolicitadas: DashboardSpecialtyStat[];
+    ingresosMensuales: DashboardMonthlyIncomeStat[];
 };
 
 @Injectable({ providedIn: 'root' })
 export class DashboardApiService {
-  private readonly http = inject(HttpClient);
-  private readonly apiBase = environment.apiUrl;
+    private readonly http = inject(HttpClient);
+    private readonly apiBase = environment.apiUrl;
 
-  getDashboard(): Observable<DashboardResponse> {
-    return this.http.get<DashboardResponse>(`${this.apiBase}/admin/dashboard`);
-  }
+    getDashboardStats(): Observable<DashboardStatsResponse> {
+        return this.http.get<DashboardStatsResponse>(`${this.apiBase}/admin/dashboard`);
+    }
+
+    getDashboard(): Observable<DashboardStatsResponse> {
+        return this.getDashboardStats();
+    }
 }

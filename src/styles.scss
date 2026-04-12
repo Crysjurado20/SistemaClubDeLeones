@@ -1,79 +1,100 @@
+:root {
+    color-scheme: light;
+}
+
+:root.app-dark {
+    color-scheme: dark;
+}
+
 /* You can add global styles to this file, and also import other style files */
 
 .dot-spinner {
-	position: relative;
-	width: 84px;
-	height: 84px;
+    position: relative;
+    width: 84px;
+    height: 84px;
 }
 
 .dot-spinner__dot {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 10px;
-	height: 10px;
-	margin: -5px;
-	border-radius: 9999px;
-	background: currentColor;
-	opacity: 0.2;
-	animation: dot-spinner-fade 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    margin: -5px;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.2;
+    animation: dot-spinner-fade 1s linear infinite;
 }
 
 .dot-spinner__dot:nth-child(1) {
-	transform: rotate(0deg) translate(0, -34px);
-	animation-delay: -0.916s;
+    transform: rotate(0deg) translate(0, -34px);
+    animation-delay: -0.916s;
 }
+
 .dot-spinner__dot:nth-child(2) {
-	transform: rotate(30deg) translate(0, -34px);
-	animation-delay: -0.833s;
+    transform: rotate(30deg) translate(0, -34px);
+    animation-delay: -0.833s;
 }
+
 .dot-spinner__dot:nth-child(3) {
-	transform: rotate(60deg) translate(0, -34px);
-	animation-delay: -0.75s;
+    transform: rotate(60deg) translate(0, -34px);
+    animation-delay: -0.75s;
 }
+
 .dot-spinner__dot:nth-child(4) {
-	transform: rotate(90deg) translate(0, -34px);
-	animation-delay: -0.666s;
+    transform: rotate(90deg) translate(0, -34px);
+    animation-delay: -0.666s;
 }
+
 .dot-spinner__dot:nth-child(5) {
-	transform: rotate(120deg) translate(0, -34px);
-	animation-delay: -0.583s;
+    transform: rotate(120deg) translate(0, -34px);
+    animation-delay: -0.583s;
 }
+
 .dot-spinner__dot:nth-child(6) {
-	transform: rotate(150deg) translate(0, -34px);
-	animation-delay: -0.5s;
+    transform: rotate(150deg) translate(0, -34px);
+    animation-delay: -0.5s;
 }
+
 .dot-spinner__dot:nth-child(7) {
-	transform: rotate(180deg) translate(0, -34px);
-	animation-delay: -0.416s;
+    transform: rotate(180deg) translate(0, -34px);
+    animation-delay: -0.416s;
 }
+
 .dot-spinner__dot:nth-child(8) {
-	transform: rotate(210deg) translate(0, -34px);
-	animation-delay: -0.333s;
+    transform: rotate(210deg) translate(0, -34px);
+    animation-delay: -0.333s;
 }
+
 .dot-spinner__dot:nth-child(9) {
-	transform: rotate(240deg) translate(0, -34px);
-	animation-delay: -0.25s;
+    transform: rotate(240deg) translate(0, -34px);
+    animation-delay: -0.25s;
 }
+
 .dot-spinner__dot:nth-child(10) {
-	transform: rotate(270deg) translate(0, -34px);
-	animation-delay: -0.166s;
+    transform: rotate(270deg) translate(0, -34px);
+    animation-delay: -0.166s;
 }
+
 .dot-spinner__dot:nth-child(11) {
-	transform: rotate(300deg) translate(0, -34px);
-	animation-delay: -0.083s;
+    transform: rotate(300deg) translate(0, -34px);
+    animation-delay: -0.083s;
 }
+
 .dot-spinner__dot:nth-child(12) {
-	transform: rotate(330deg) translate(0, -34px);
-	animation-delay: 0s;
+    transform: rotate(330deg) translate(0, -34px);
+    animation-delay: 0s;
 }
 
 @keyframes dot-spinner-fade {
-	0%,
-	100% {
-		opacity: 0.2;
-	}
-	50% {
-		opacity: 1;
-	}
+
+    0%,
+    100% {
+        opacity: 0.2;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }

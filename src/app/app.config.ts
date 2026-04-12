@@ -38,7 +38,12 @@ export const appConfig: ApplicationConfig = {
         provideHttpClient(withFetch(), withInterceptors([jwtInterceptor])),
         provideZonelessChangeDetection(),
         providePrimeNG({
-            theme: { preset: Aura },
+            theme: {
+                preset: Aura,
+                options: {
+                    darkModeSelector: '.app-dark',
+                },
+            },
             translation: PRIME_NG_ES,
             zIndex: {
                 modal: 1100,
