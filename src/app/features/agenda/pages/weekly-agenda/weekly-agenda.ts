@@ -198,11 +198,6 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
         this.doctorSeleccionado = idMedico;
 
         if (idMedico) {
-            console.info('[WeeklyAgenda] Inicializando agenda de medico', {
-                idMedico,
-                role: this.authService.getPrimaryAppRole(),
-            });
-
             this.doctoresOptions = [
                 {
                     label: this.authService.getDisplayLabel().split('·')[0]?.trim() || 'Médico',
