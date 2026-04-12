@@ -1,88 +1,57 @@
 <div class="layout-topbar">
-  <div class="layout-topbar-logo-container">
-    @if (showMenuToggle()) {
-      <button
-        type="button"
-        class="layout-menu-button layout-topbar-action"
-        (click)="onMenuToggle()"
-        aria-label="Abrir o cerrar menú"
-      >
-        <i class="pi pi-bars" aria-hidden="true"></i>
-      </button>
-    }
+    <div class="layout-topbar-logo-container">
+        @if (showMenuToggle()) {
+        <button type="button" class="layout-menu-button layout-topbar-action" (click)="onMenuToggle()"
+            aria-label="Abrir o cerrar menú">
+            <i class="pi pi-bars" aria-hidden="true"></i>
+        </button>
+        }
 
-    <a class="layout-topbar-logo" [routerLink]="homeLink()">
-      <img
-        [ngSrc]="logoSrc()"
-        [alt]="logoAlt()"
-        width="48"
-        height="48"
-        class="h-12 mr-2"
-      />
-      <span>{{ title() }}</span>
-    </a>
-  </div>
-
-  @if (showActions()) {
-    <div class="layout-topbar-actions">
-      <button
-        type="button"
-        class="layout-topbar-menu-button layout-topbar-action"
-        pStyleClass="@next"
-        enterFromClass="hidden"
-        enterActiveClass="animate-scalein"
-        leaveToClass="hidden"
-        leaveActiveClass="animate-fadeout"
-        [hideOnOutsideClick]="true"
-        aria-label="Mostrar opciones"
-      >
-        <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
-      </button>
-
-      <div class="layout-topbar-menu hidden lg:block">
-        <div class="layout-topbar-menu-content">
-          @if (showThemeToggle()) {
-            <button
-              type="button"
-              class="layout-topbar-action"
-              (click)="toggleDarkMode()"
-              aria-label="Cambiar tema"
-            >
-              <i
-                class="pi pi-moon transition-colors duration-200"
-                [class.text-blue-500]="darkTheme()"
-                aria-hidden="true"
-              ></i>
-              <span>Tema</span>
-            </button>
-          }
-
-          <ng-content select="[navbar-actions]"></ng-content>
-
-          @if (showUser()) {
-            <button
-              type="button"
-              class="layout-topbar-action layout-topbar-action-user w-auto px-4 flex items-center gap-2"
-              aria-label="Usuario"
-            >
-              <i class="pi pi-user" aria-hidden="true"></i>
-              <span class="block font-semibold text-sm">{{ userLabel() }}</span>
-            </button>
-          }
-
-          @if (showLogout()) {
-            <button
-              type="button"
-              class="layout-topbar-action"
-              (click)="onLogout()"
-              aria-label="Salir"
-            >
-              <i class="pi pi-sign-out" aria-hidden="true"></i>
-              <span>Salir</span>
-            </button>
-          }
-        </div>
-      </div>
+        <a class="layout-topbar-logo" [routerLink]="homeLink()">
+            <img [ngSrc]="logoSrc()" [alt]="logoAlt()" width="48" height="48" class="h-12 mr-2" />
+            <span>{{ title() }}</span>
+        </a>
     </div>
-  }
+
+    @if (showActions()) {
+    <div class="layout-topbar-actions">
+        <button type="button" class="layout-topbar-menu-button layout-topbar-action" pStyleClass="@next"
+            enterFromClass="hidden" enterActiveClass="animate-scalein" leaveToClass="hidden"
+            leaveActiveClass="animate-fadeout" [hideOnOutsideClick]="true" aria-label="Mostrar opciones">
+            <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+        </button>
+
+        <div class="layout-topbar-menu hidden lg:block">
+            <div class="layout-topbar-menu-content">
+                @if (showThemeToggle()) {
+                <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()"
+                    [attr.aria-label]="darkTheme() ? 'Activar modo claro' : 'Activar modo oscuro'"
+                    [attr.aria-pressed]="darkTheme()">
+                    <i class="pi transition-colors duration-200" [class.pi-sun]="darkTheme()"
+                        [class.pi-moon]="!darkTheme()" [class.text-blue-500]="darkTheme()" aria-hidden="true"></i>
+                    <span>{{ darkTheme() ? 'Modo claro' : 'Modo oscuro' }}</span>
+                </button>
+                }
+
+                <ng-content select="[navbar-actions]"></ng-content>
+
+                @if (showUser()) {
+                <button type="button"
+                    class="layout-topbar-action layout-topbar-action-user w-auto px-4 flex items-center gap-2"
+                    aria-label="Usuario">
+                    <i class="pi pi-user" aria-hidden="true"></i>
+                    <span class="block font-semibold text-sm">{{ userLabel() }}</span>
+                </button>
+                }
+
+                @if (showLogout()) {
+                <button type="button" class="layout-topbar-action" (click)="onLogout()" aria-label="Salir">
+                    <i class="pi pi-sign-out" aria-hidden="true"></i>
+                    <span>Salir</span>
+                </button>
+                }
+            </div>
+        </div>
+    </div>
+    }
 </div>
