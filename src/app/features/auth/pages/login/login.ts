@@ -56,6 +56,23 @@ export class Login {
         contrasena: ''
     };
 
+    private normalizeLoginResponse(raw: unknown): { token: string; idUsuario: number; nombres: string; rol: string } {
+        const data = (raw ?? {}) as Record<string, unknown>;
+
+        const token = (data['token'] ?? data['Token'] ?? '').toString().trim();
+        const rol = (data['rol'] ?? data['Rol'] ?? '').toString().trim();
+        const nombres = (data['nombres'] ?? data['Nombres'] ?? '').toString().trim();
+        const idRaw = data['idUsuario'] ?? data['IdUsuario'];
+        const idUsuario = typeof idRaw === 'number' ? idRaw : Number(idRaw ?? 0);
+
+        return {
+            token,
+            idUsuario: Number.isFinite(idUsuario) && idUsuario > 0 ? idUsuario : 0,
+            nombres,
+            rol,
+        };
+    }
+
     private isValidEmail(value: string): boolean {
         const v = (value ?? '').toString().trim();
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -94,19 +111,30 @@ export class Login {
             .pipe(finalize(() => this.isLoading.set(false)))
             .subscribe({
                 next: (respuesta) => {
+                    const normalized = this.normalizeLoginResponse(respuesta);
+                    if (!normalized.token) {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'No se pudo iniciar sesión',
+                            detail: 'El servidor no devolvió un token válido.',
+                        });
+                        return;
+                    }
+
                     // Limpia cualquier sesión anterior (por ejemplo tokens viejos en access_token/jwt)
                     // para evitar desincronización entre el JWT (guards/interceptor) y localStorage.usuario.
                     this.sessionAuth.logout();
 
-                    localStorage.setItem('token', respuesta.token);
-                    localStorage.setItem('userLabel', respuesta.nombres);
+                    localStorage.setItem('token', normalized.token);
+                    localStorage.setItem('userLabel', normalized.nombres);
                     localStorage.setItem('usuario', JSON.stringify({
-                        idUsuario: respuesta.idUsuario,
-                        nombres: respuesta.nombres,
-                        rol: respuesta.rol
+                        idUsuario: normalized.idUsuario,
+                        nombres: normalized.nombres,
+                        rol: normalized.rol
                     }));
 
-                    const homeRoute = this.sessionAuth.getHomeRouteByRole(respuesta.rol);
+                    const roleForHome = normalized.rol || this.sessionAuth.getPrimaryAppRole();
+                    const homeRoute = this.sessionAuth.getHomeRouteByRole(roleForHome);
                     void this.router.navigateByUrl(homeRoute);
                 },
                 error: (err) => {
@@ -120,7 +148,7 @@ export class Login {
             });
     }
 
-    loginMock(role: 'ADMIN' | 'DOCTOR' | 'PATIENT') {
+    loginMock(role: 'ADMIN' | 'MEDICO' | 'PATIENT') {
         this.sessionAuth.loginMock(role);
         const homeRoute = this.sessionAuth.getHomeRouteByRole(role);
         void this.router.navigateByUrl(homeRoute);

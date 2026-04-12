@@ -65,8 +65,15 @@ function normalizeRoles(value: unknown): string[] {
 function mapBackendRoleToAppRole(role: string): string {
     const normalized = role.trim().toUpperCase();
 
+    // Compatibilidad: algunos entornos todavía emiten DOCTOR en lugar de MEDICO.
+    if (normalized === 'DOCTOR') return 'MEDICO';
+
+    // Passthrough: ya están mapeados
+    if (normalized === 'ADMIN' || normalized === 'MEDICO' || normalized === 'PATIENT') return normalized;
+
+    // Enum RolUsuario de C#
     if (normalized === 'ADMINISTRADOR') return 'ADMIN';
-    if (normalized === 'MEDICO' || normalized === 'MÉDICO') return 'DOCTOR';
+    if (normalized === 'MEDICO' || normalized === 'MÉDICO') return 'MEDICO';
     if (normalized === 'PACIENTE') return 'PATIENT';
 
     return normalized;
@@ -86,18 +93,19 @@ function getRolesFromStoredUser(): string[] {
 }
 
 function getRolesFromPayload(payload: JwtPayload | null): string[] {
-    if (!payload) return [];
-
     const roles = new Set<string>();
-    for (const r of normalizeRoles(payload.roles)) roles.add(r);
-    for (const r of normalizeRoles(payload.role)) roles.add(r);
-    for (const r of normalizeRoles(payload.authorities)) roles.add(r);
-    for (const r of normalizeRoles(payload.rol)) roles.add(r);
 
-    // Fallback: si el token no incluye roles (o no se pueden leer),
-    // usamos el rol persistido en el login para no mandar al usuario a Access.
-    if (roles.size === 0) {
-        for (const r of getRolesFromStoredUser()) roles.add(r);
+    // 1. FUENTE PRIMARIA: localStorage.usuario (siempre se escribe en el login real)
+    //    Es la fuente más confiable porque viene directamente del DTO del backend.
+    const storedRoles = getRolesFromStoredUser();
+    for (const r of storedRoles) roles.add(r);
+
+    // 2. FUENTE SECUNDARIA: payload del JWT (puede tener naming distinto según el handler)
+    if (payload) {
+        for (const r of normalizeRoles(payload.roles)) roles.add(r);
+        for (const r of normalizeRoles(payload.role)) roles.add(r);
+        for (const r of normalizeRoles(payload.authorities)) roles.add(r);
+        for (const r of normalizeRoles(payload.rol)) roles.add(r);
     }
 
     return [...roles]

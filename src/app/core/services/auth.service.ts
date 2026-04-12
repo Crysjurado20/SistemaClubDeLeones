@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-type AppRole = 'ADMIN' | 'DOCTOR' | 'PATIENT';
+type AppRole = 'ADMIN' | 'MEDICO' | 'PATIENT';
 
 type JwtPayload = {
     exp?: number;
@@ -15,9 +15,15 @@ type JwtPayload = {
 function mapBackendRoleToAppRole(role: string): string {
     const normalized = role.trim().toUpperCase();
 
+    // Compatibilidad: algunos entornos todavía emiten DOCTOR en lugar de MEDICO.
+    if (normalized === 'DOCTOR') return 'MEDICO';
 
+    // Passthrough: ya están mapeados
+    if (normalized === 'ADMIN' || normalized === 'MEDICO' || normalized === 'PATIENT') return normalized;
+
+    // Enum RolUsuario de C#
     if (normalized === 'ADMINISTRADOR') return 'ADMIN';
-    if (normalized === 'MEDICO' || normalized === 'MÉDICO') return 'DOCTOR';
+    if (normalized === 'MEDICO' || normalized === 'MÉDICO') return 'MEDICO';
     if (normalized === 'PACIENTE') return 'PATIENT';
 
     return normalized;
@@ -74,7 +80,7 @@ export class AuthService {
     loginMock(role: AppRole, userLabel?: string): void {
         const defaultNameByRole: Record<AppRole, string> = {
             ADMIN: 'Admin Demo',
-            DOCTOR: 'Juan Perez',
+            MEDICO: 'Juan Perez',
             PATIENT: 'Maria Lopez',
         };
 
@@ -138,7 +144,7 @@ export class AuthService {
         const normalizedRole = mapBackendRoleToAppRole((role ?? '').toString());
 
         if (normalizedRole === 'ADMIN') return '/reports-dashboard';
-        if (normalizedRole === 'DOCTOR') return '/weekly-agenda';
+        if (normalizedRole === 'MEDICO') return '/weekly-agenda';
         if (normalizedRole === 'PATIENT') return '/appointments';
 
         return '/landing';
@@ -150,11 +156,18 @@ export class AuthService {
     }
 
     getRoles(): string[] {
-        const payload = this.getPayload();
-
         const set = new Set<string>();
-        for (const r of normalizeRoles(payload?.roles)) set.add(r);
-        for (const r of normalizeRoles(payload?.rol)) set.add(r);
+
+        // 1. FUENTE PRIMARIA: localStorage.usuario (escrito en cada login real)
+        const stored = this.getStoredUser();
+        if (stored?.rol) set.add(stored.rol);
+
+        // 2. FUENTE SECUNDARIA: payload del JWT
+        const payload = this.getPayload();
+        if (payload) {
+            for (const r of normalizeRoles(payload?.roles)) set.add(r);
+            for (const r of normalizeRoles(payload?.rol)) set.add(r);
+        }
 
         return [...set].map(mapBackendRoleToAppRole);
     }
@@ -162,7 +175,7 @@ export class AuthService {
     getPrimaryAppRole(): AppRole | null {
         const roles = this.getRoles();
         const first = roles[0];
-        if (first === 'ADMIN' || first === 'DOCTOR' || first === 'PATIENT') return first;
+        if (first === 'ADMIN' || first === 'MEDICO' || first === 'PATIENT') return first;
         return null;
     }
 
@@ -178,14 +191,14 @@ export class AuthService {
     private getRoleLabel(role: AppRole): string {
         const map: Record<AppRole, string> = {
             ADMIN: 'Administrador',
-            DOCTOR: 'Doctor',
+            MEDICO: 'Médico',
             PATIENT: 'Paciente',
         };
 
         return map[role];
     }
 
-    private ensureDoctorPrefix(name: string): string {
+    private ensureMedicoPrefix(name: string): string {
         const normalized = name.trim();
         if (!normalized) return 'Dr.';
         return normalized.toLowerCase().startsWith('dr.') ? normalized : `Dr. ${normalized}`;
