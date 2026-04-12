@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild, isDevMode } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit, ViewChild, isDevMode, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -57,7 +57,7 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
     @ViewChild('dt') dt?: Table;
 
     searchTerm = '';
-    estadoSeleccionado: EstadoCita | null = 'pendiente';
+    estadoSeleccionado: EstadoCita | null = null;
     especialidadSeleccionada: string | null = null;
     especialidades: DoctorSpecialty[] = [];
 
@@ -98,43 +98,28 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
         this.especialidades = especialidades;
         const nextOptions = this.buildEspecialidadOptions(especialidades);
 
-        this.debugLog('setEspecialidades: schedule update options', {
+        this.debugLog('setEspecialidades: options', {
             prevOptions: this.especialidadOptions,
             nextOptions,
             selected: this.especialidadSeleccionada,
         });
 
-        // Evita NG0100 cuando PrimeNG evalua opciones durante el mismo ciclo inicial.
-        setTimeout(() => {
-            this.especialidadOptions = nextOptions;
+        this.especialidadOptions = nextOptions;
 
-            this.debugLog('setEspecialidades: applied options', {
-                appliedOptions: this.especialidadOptions,
-                selected: this.especialidadSeleccionada,
-            });
+        if (
+            this.especialidadSeleccionada &&
+            !nextOptions.some((option) => option.value === this.especialidadSeleccionada)
+        ) {
+            this.especialidadSeleccionada = null;
+        }
 
-            if (
-                this.especialidadSeleccionada &&
-                !nextOptions.some((option) => option.value === this.especialidadSeleccionada)
-            ) {
-                this.especialidadSeleccionada = null;
-                this.debugLog('setEspecialidades: selected reset because no longer exists');
-            }
-        });
+        this.cdr.markForCheck();
     }
 
     private finishLoadTurnos(): void {
-        this.debugLog('finishLoadTurnos: schedule set cargandoTurnos=false', {
-            current: this.cargandoTurnos,
-        });
-
-        // Evita NG0100 si la respuesta llega durante el primer ciclo de deteccion.
-        setTimeout(() => {
-            this.cargandoTurnos = false;
-            this.debugLog('finishLoadTurnos: applied set cargandoTurnos=false', {
-                current: this.cargandoTurnos,
-            });
-        });
+        this.cargandoTurnos = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
     }
 
     ngOnInit(): void {
@@ -151,13 +136,7 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
         }
 
         this.debugLog('ngOnInit: idMedico detectado', { idMedico });
-
-        // Difiere la carga inicial al siguiente ciclo para evitar NG0100
-        // en bindings de PrimeNG durante el primer render.
-        setTimeout(() => {
-            this.debugLog('ngOnInit: execute deferred loadInitialData');
-            this.loadInitialData(idMedico);
-        });
+        this.loadInitialData(idMedico);
     }
 
     private loadInitialData(idMedico: number): void {
@@ -212,9 +191,6 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
                 });
 
                 this.finishLoadTurnos();
-
-                // Asegura que por defecto se vean los pendientes de atención
-                queueMicrotask(() => this.onEstadoChange());
             },
             error: (err) => {
                 this.debugLog('HTTP getDayAppointments: error', {
@@ -241,7 +217,7 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit(): void {
-        this.onEstadoChange();
+        setTimeout(() => this.onEstadoChange(), 0);
     }
 
     readonly navTabs = [
@@ -463,6 +439,7 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
         private readonly doctorApi: DoctorApiService,
         private readonly messageService: MessageService,
         private readonly attentionPdf: AttentionPdfService,
+        private readonly cdr: ChangeDetectorRef,
     ) { }
 
     private buildHistoriaClinica(idPaciente: number): string {
