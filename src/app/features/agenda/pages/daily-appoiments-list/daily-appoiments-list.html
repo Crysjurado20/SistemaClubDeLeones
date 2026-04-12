@@ -170,7 +170,7 @@
                   label="Atender"
                   icon="pi pi-file-edit"
                   class="p-button-sm"
-                  [disabled]="row.estado === 'atendido' || row.estado === 'pendiente_pago' || row.estado === 'cancelado'"
+                  [disabled]="row.estado === 'atendido' || row.estado === 'pendiente_pago' || row.estado === 'cancelado' || row.estado === 'no_asistio' || row.estado === 'bloqueado'"
                   (click)="atender(row)"
                 ></button>
 

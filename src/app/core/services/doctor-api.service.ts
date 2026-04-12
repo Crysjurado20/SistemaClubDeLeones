@@ -35,7 +35,7 @@ export type DoctorWeekAppointment = {
   fecha: string; // yyyy-MM-dd
   horaInicio: string; // HH:mm
   horaFin: string; // HH:mm
-  estado: 'pendiente' | 'pendiente_pago' | 'ocupado' | 'atendido' | 'bloqueado' | 'cancelado';
+  estado: 'pendiente' | 'pendiente_pago' | 'ocupado' | 'atendido' | 'bloqueado' | 'cancelado' | 'no_asistio';
   especialidad: string;
   tipoConsulta: string;
   observacion: string;
@@ -52,7 +52,7 @@ export type DoctorDailyAppointment = {
   nombres: string;
   especialidad: string;
   tipoConsulta: string;
-  estado: 'pendiente' | 'pendiente_pago' | 'ocupado' | 'atendido' | 'bloqueado' | 'cancelado';
+  estado: 'pendiente' | 'pendiente_pago' | 'ocupado' | 'atendido' | 'bloqueado' | 'cancelado' | 'no_asistio';
 };
 
 export type ConfirmPaymentRequest = {
@@ -156,6 +156,18 @@ export class DoctorApiService {
   }
   cancelAppointment(idCita: number, idMedico: number): Observable<{ mensaje: string }> {
     return this.http.put<{ mensaje: string }>(`${this.apiBase}/appointments/${idCita}/cancel`, { idMedico });
+  }
+
+  markNoShow(idCita: number): Observable<{ mensaje: string }> {
+    return this.http.put<{ mensaje: string }>(`${this.apiBase}/appointments/${idCita}/no-show`, {});
+  }
+
+  markBusy(idCita: number): Observable<{ mensaje: string }> {
+    return this.http.put<{ mensaje: string }>(`${this.apiBase}/appointments/${idCita}/busy`, {});
+  }
+
+  markBlocked(idCita: number): Observable<{ mensaje: string }> {
+    return this.http.put<{ mensaje: string }>(`${this.apiBase}/appointments/${idCita}/block`, {});
   }
 
   getClinicalHistory(idPaciente: number): Observable<DoctorClinicalHistory> {

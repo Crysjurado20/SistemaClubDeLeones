@@ -64,6 +64,7 @@ export type PatientInvoice = {
   especialidad: string;
   total: number;
   estado: string;
+  anulada?: boolean;
 };
 
 @Injectable({ providedIn: 'root' })

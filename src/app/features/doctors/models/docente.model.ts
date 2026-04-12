@@ -1,4 +1,4 @@
-export type EstadoTurno = 'pendiente' | 'pendiente_pago' | 'atendido' | 'ocupado' | 'bloqueado' | 'cancelado';
+export type EstadoTurno = 'pendiente' | 'pendiente_pago' | 'atendido' | 'ocupado' | 'bloqueado' | 'cancelado' | 'no_asistio';
 
 export interface Paciente {
   id: number;

@@ -520,6 +520,15 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
  cancelarCita(): void {
     if (!this.turnoAcciones) return;
 
+    if (this.turnoAcciones.estado === 'no_asistio') {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'No asistió',
+        detail: 'No se puede cancelar una cita marcada como no asistió.',
+      });
+      return;
+    }
+
     const idCita = this.turnoAcciones.id;
     const idMedico = this.doctorSeleccionado ?? this.authService.getUserId();
     
@@ -532,7 +541,7 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
         this.messageService.add({ 
           severity: 'success', 
           summary: 'Cita cancelada', 
-          detail: res?.mensaje ?? 'La cita fue cancelada correctamente.' 
+          detail: (res?.mensaje ?? 'La cita fue cancelada correctamente.') + ' La factura asociada ha sido anulada.' 
         });
         
         this.turnoAcciones = null;
@@ -562,6 +571,15 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
         severity: 'info',
         summary: 'Cita atendida',
         detail: 'No se puede reagendar una cita que ya fue atendida.',
+      });
+      return;
+    }
+
+    if (this.turnoAcciones.estado === 'no_asistio') {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'No asistió',
+        detail: 'No se puede reagendar una cita marcada como no asistió.',
       });
       return;
     }
@@ -917,6 +935,7 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
       ocupado: 'bg-orange-50 border-orange-400 text-orange-800',
       bloqueado: 'bg-gray-100 border-gray-400 text-gray-600',
       cancelado: 'bg-red-50 border-red-500 text-red-800',
+      no_asistio: 'bg-purple-50 border-purple-500 text-purple-800',
     };
     return map[estado] || 'bg-blue-50 border-blue-500 text-blue-800';
   }
@@ -936,6 +955,7 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
       ocupado: 'Ocupado',
       bloqueado: 'Bloqueado',
       cancelado: 'Cancelado',
+      no_asistio: 'No asistió',
     };
     return map[estado] || 'Desconocido';
   }
@@ -948,6 +968,7 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
       ocupado: 'warn',
       bloqueado: 'secondary',
       cancelado: 'danger',
+      no_asistio: 'danger',
     };
     return map[estado] || 'info';
   }
@@ -962,6 +983,60 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
       this.estadoCambiado.emit({ turno: this.turnoSeleccionado, nuevoEstado });
       this.mostrarDetalle = false;
     }
+  }
+
+  marcarNoAsistio(): void {
+    if (!this.turnoAcciones) return;
+    const idCita = this.turnoAcciones.id;
+
+    this.doctorApi.markNoShow(idCita).subscribe({
+      next: (res) => {
+        this.turnos = this.turnos.map((t) => (t.id === idCita ? { ...t, estado: 'no_asistio' as const } : t));
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: res?.mensaje ?? 'Cita marcada como no asistió.' });
+        this.turnoAcciones = null;
+        this.mostrarAccionesCita = false;
+      },
+      error: (err) => {
+        const mensaje = err?.error?.mensaje ?? 'No se pudo marcar como no asistió.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: mensaje });
+      },
+    });
+  }
+
+  marcarOcupada(): void {
+    if (!this.turnoAcciones) return;
+    const idCita = this.turnoAcciones.id;
+
+    this.doctorApi.markBusy(idCita).subscribe({
+      next: (res) => {
+        this.turnos = this.turnos.map((t) => (t.id === idCita ? { ...t, estado: 'ocupado' as const } : t));
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: res?.mensaje ?? 'Cita marcada como ocupada.' });
+        this.turnoAcciones = null;
+        this.mostrarAccionesCita = false;
+      },
+      error: (err) => {
+        const mensaje = err?.error?.mensaje ?? 'No se pudo marcar como ocupada.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: mensaje });
+      },
+    });
+  }
+
+  marcarBloqueada(): void {
+    if (!this.turnoAcciones) return;
+    const idCita = this.turnoAcciones.id;
+
+    this.doctorApi.markBlocked(idCita).subscribe({
+      next: (res) => {
+        this.turnos = this.turnos.map((t) => (t.id === idCita ? { ...t, estado: 'bloqueado' as const } : t));
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: res?.mensaje ?? 'Cita bloqueada correctamente.' });
+        this.turnoAcciones = null;
+        this.mostrarAccionesCita = false;
+      },
+      error: (err) => {
+        const mensaje = err?.error?.mensaje ?? 'No se pudo bloquear la cita.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: mensaje });
+      },
+    });
   }
 
   private getSlotsDisponiblesSemana(ignoreTurnoId?: number): SelectOption<string>[] {

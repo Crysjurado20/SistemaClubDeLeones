@@ -166,6 +166,7 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
     { label: 'Ocupado', value: 'ocupado' },
     { label: 'Atendido', value: 'atendido' },
     { label: 'Bloqueado', value: 'bloqueado' },
+    { label: 'No asistió', value: 'no_asistio' },
   ];
 
   onSearchChange(): void {
@@ -208,7 +209,7 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
     this.dt?.clear();
   }
 
-  getSeverity(estado: EstadoCita): 'success' | 'info' | 'warn' | 'secondary' {
+  getSeverity(estado: EstadoCita): 'success' | 'info' | 'warn' | 'secondary' | 'danger' {
     const map: Record<EstadoCita, any> = {
       atendido: 'success',
       pendiente: 'info',
@@ -216,6 +217,7 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
       ocupado: 'warn',
       bloqueado: 'secondary',
       cancelado: 'secondary',
+      no_asistio: 'danger',
     };
 
     return map[estado] || 'info';
@@ -229,6 +231,7 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
       ocupado: 'Ocupado',
       bloqueado: 'Bloqueado',
       cancelado: 'Cancelado',
+      no_asistio: 'No asistió',
     };
 
     return map[estado] || estado;
@@ -251,6 +254,14 @@ export class DailyAppoimentsListComponent implements OnInit, AfterViewInit {
         severity: 'info',
         summary: 'Cita cancelada',
         detail: 'No se puede atender una cita cancelada.',
+      });
+      return;
+    }
+    if (row.estado === 'no_asistio') {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'No asistió',
+        detail: 'No se puede atender una cita marcada como no asistió.',
       });
       return;
     }

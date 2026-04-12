@@ -90,6 +90,12 @@
           <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
             <span class="w-2.5 h-2.5 rounded-full bg-surface-400"></span> Bloqueado
           </span>
+          <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Cancelado
+          </span>
+          <span class="flex items-center gap-2 text-sm text-surface-700 dark:text-surface-100">
+            <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> No asistió
+          </span>
         </div>
       </div>
     </div>
@@ -409,44 +415,96 @@
   }
 
   <ng-template pTemplate="footer">
-    <div class="flex items-center justify-end gap-2 w-full flex-nowrap">
-      @if (turnoAcciones?.estado === 'pendiente_pago') {
+    <div class="flex flex-col gap-2 w-full">
+      <div class="flex items-center justify-end gap-2 w-full flex-wrap">
+        @if (turnoAcciones?.estado === 'pendiente_pago') {
+          <button
+            pButton
+            type="button"
+            label="Confirmar pago"
+            icon="pi pi-check"
+            severity="success"
+            class="p-button-sm flex-1 whitespace-nowrap"
+            (click)="confirmarTurnoPagado()"
+          ></button>
+        }
+
         <button
           pButton
           type="button"
-          label="Confirmar pago"
-          icon="pi pi-check"
-          severity="success"
-          class="p-button-sm flex-1 whitespace-nowrap"
-          (click)="confirmarTurnoPagado()"
+          label="Reagendar"
+          icon="pi pi-refresh"
+          severity="secondary"
+          class="p-button-sm p-button-outlined flex-1 whitespace-nowrap"
+          [disabled]="
+            turnoAcciones?.estado === 'pendiente_pago' ||
+            turnoAcciones?.estado === 'atendido' ||
+            turnoAcciones?.estado === 'cancelado' ||
+            turnoAcciones?.estado === 'no_asistio'
+          "
+          (click)="reagendarCita()"
         ></button>
-      }
 
-      <button
-        pButton
-        type="button"
-        label="Reagendar"
-        icon="pi pi-refresh"
-        severity="secondary"
-        class="p-button-sm p-button-outlined flex-1 whitespace-nowrap"
-        [disabled]="
-          turnoAcciones?.estado === 'pendiente_pago' ||
-          turnoAcciones?.estado === 'atendido' ||
-          turnoAcciones?.estado === 'cancelado'
-        "
-        (click)="reagendarCita()"
-      ></button>
+        <button
+          pButton
+          type="button"
+          label="Cancelar cita"
+          icon="pi pi-times"
+          severity="danger"
+          class="p-button-sm flex-1 whitespace-nowrap"
+          [disabled]="turnoAcciones?.estado === 'atendido' || turnoAcciones?.estado === 'cancelado' || turnoAcciones?.estado === 'no_asistio'"
+          (click)="cancelarCita()"
+        ></button>
+      </div>
 
-      <button
-        pButton
-        type="button"
-        label="Cancelar cita"
-        icon="pi pi-times"
-        severity="danger"
-        class="p-button-sm flex-1 whitespace-nowrap"
-        [disabled]="turnoAcciones?.estado === 'atendido' || turnoAcciones?.estado === 'cancelado'"
-        (click)="cancelarCita()"
-      ></button>
+      <div class="flex items-center justify-end gap-2 w-full flex-wrap">
+        <button
+          pButton
+          type="button"
+          label="No asistió"
+          icon="pi pi-user-minus"
+          severity="help"
+          class="p-button-sm p-button-outlined flex-1 whitespace-nowrap"
+          [disabled]="
+            turnoAcciones?.estado === 'atendido' ||
+            turnoAcciones?.estado === 'cancelado' ||
+            turnoAcciones?.estado === 'no_asistio' ||
+            turnoAcciones?.estado === 'ocupado' ||
+            turnoAcciones?.estado === 'bloqueado'
+          "
+          (click)="marcarNoAsistio()"
+        ></button>
+
+        <button
+          pButton
+          type="button"
+          label="Ocupar"
+          icon="pi pi-lock"
+          severity="warn"
+          class="p-button-sm p-button-outlined flex-1 whitespace-nowrap"
+          [disabled]="
+            turnoAcciones?.estado === 'atendido' ||
+            turnoAcciones?.estado === 'cancelado' ||
+            turnoAcciones?.estado === 'ocupado'
+          "
+          (click)="marcarOcupada()"
+        ></button>
+
+        <button
+          pButton
+          type="button"
+          label="Bloquear"
+          icon="pi pi-ban"
+          severity="secondary"
+          class="p-button-sm p-button-outlined flex-1 whitespace-nowrap"
+          [disabled]="
+            turnoAcciones?.estado === 'atendido' ||
+            turnoAcciones?.estado === 'cancelado' ||
+            turnoAcciones?.estado === 'bloqueado'
+          "
+          (click)="marcarBloqueada()"
+        ></button>
+      </div>
     </div>
   </ng-template>
 </p-dialog>
