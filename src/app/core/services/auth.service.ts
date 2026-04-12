@@ -143,7 +143,7 @@ export class AuthService {
     getHomeRouteByRole(role: string | null | undefined): string {
         const normalizedRole = mapBackendRoleToAppRole((role ?? '').toString());
 
-        if (normalizedRole === 'ADMIN') return '/reports-dashboard';
+        if (normalizedRole === 'ADMIN') return '/admin-dashboard';
         if (normalizedRole === 'MEDICO') return '/weekly-agenda';
         if (normalizedRole === 'PATIENT') return '/appointments';
 

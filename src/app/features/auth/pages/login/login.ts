@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router'; // Importante para la redirección
 import { InputTextModule } from 'primeng/inputtext';
@@ -25,6 +25,7 @@ import { finalize } from 'rxjs';
         CommonModule,
         FormsModule,
         RouterLink,
+        NgOptimizedImage,
         InputTextModule,
         PasswordModule,
         CheckboxModule,

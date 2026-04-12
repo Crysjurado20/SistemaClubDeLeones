@@ -11,16 +11,18 @@ const PATIENT = 'PATIENT';
 export const appRoutes: Routes = [
     { path: '', redirectTo: 'landing', pathMatch: 'full' },
 
+    { path: 'reports-dashboard', redirectTo: 'admin-dashboard', pathMatch: 'full' },
+
     {
         path: '',
         component: AppLayout,
         canActivateChild: [authChildGuard],
         children: [
             {
-                path: 'reports-dashboard',
+                path: 'admin-dashboard',
                 loadComponent: () =>
-                    import('./features/dashboard/pages/reports-dashboard/reports-dashboard').then(
-                        (m) => m.ReportsComponent,
+                    import('./features/dashboard/pages/admin-dashboard/admin-dashboard').then(
+                        (m) => m.AdminDashboardComponent,
                     ),
                 data: { roles: [ADMIN] },
             },

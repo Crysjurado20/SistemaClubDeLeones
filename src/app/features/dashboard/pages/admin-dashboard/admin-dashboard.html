@@ -1,0 +1,115 @@
+<div class="admin-dashboard">
+    <section class="dashboard-hero">
+        <div class="dashboard-hero__copy">
+            <span class="dashboard-hero__eyebrow">Administración · MediSync</span>
+            <h1>Dashboard operativo</h1>
+            <p>
+                Lectura ejecutiva de la demanda clínica, el estado de las citas y la facturación simulada por mes.
+            </p>
+
+            <div class="dashboard-hero__actions">
+                <button pButton type="button" class="p-button-outlined dashboard-hero__refresh" label="Actualizar"
+                    icon="pi pi-refresh" (click)="reload()"></button>
+            </div>
+        </div>
+
+        <div class="dashboard-hero__stats">
+            <article class="hero-stat hero-stat--accent">
+                <span>Total de citas</span>
+                <strong>{{ totalAppointments() }}</strong>
+                <small>{{ pieSummary() || 'Sin registros aún' }}</small>
+            </article>
+
+            <article class="hero-stat">
+                <span>Ingresos 12 meses</span>
+                <strong>{{ totalIncome() | currency:'USD':'symbol':'1.0-0' }}</strong>
+                @if (peakIncomeMonth(); as peakMonth) {
+                <small>
+                    Mes pico: {{ peakMonth.etiqueta }} · {{ peakMonth.monto | currency:'USD':'symbol':'1.0-0' }}
+                </small>
+                } @else {
+                <small>Sin ingresos todavía</small>
+                }
+            </article>
+
+            <article class="hero-stat">
+                <span>Especialidad líder</span>
+                <strong>{{ topSpecialty()?.nombre ?? '—' }}</strong>
+                <small>{{ topSpecialty()?.cantidad ?? 0 }} solicitudes registradas</small>
+            </article>
+        </div>
+    </section>
+
+    @if (loading()) {
+    <section class="dashboard-state dashboard-state--loading" aria-live="polite">
+        <p-progressSpinner strokeWidth="4"></p-progressSpinner>
+        <div>
+            <h2>Cargando panel administrativo</h2>
+            <p>Estamos consolidando citas, especialidades e ingresos.</p>
+        </div>
+    </section>
+    } @else if (error()) {
+    <section class="dashboard-state dashboard-state--error" role="alert">
+        <i class="pi pi-exclamation-triangle dashboard-state__icon"></i>
+        <div class="dashboard-state__copy">
+            <h2>No se pudo cargar la información</h2>
+            <p>{{ error() }}</p>
+        </div>
+
+        <button pButton type="button" label="Reintentar" icon="pi pi-refresh" (click)="reload()"></button>
+    </section>
+    } @else {
+    <section class="dashboard-grid">
+        <article class="dashboard-panel dashboard-panel--pie" aria-labelledby="states-title"
+            [attr.aria-describedby]="pieSummaryId">
+            <div class="dashboard-panel__header">
+                <div>
+                    <span class="dashboard-panel__eyebrow">Distribución clínica</span>
+                    <h2 id="states-title">Citas por estado</h2>
+                </div>
+                <span class="dashboard-panel__badge">{{ totalAppointments() }} citas</span>
+            </div>
+
+            <p class="visually-hidden" [id]="pieSummaryId">{{ pieSummary() }}</p>
+
+            <div class="chart-frame chart-frame--pie">
+                <p-chart type="pie" [data]="pieData()" [options]="pieOptions()"></p-chart>
+            </div>
+        </article>
+
+        <article class="dashboard-panel dashboard-panel--bar" aria-labelledby="specialties-title"
+            [attr.aria-describedby]="barSummaryId">
+            <div class="dashboard-panel__header">
+                <div>
+                    <span class="dashboard-panel__eyebrow">Demanda clínica</span>
+                    <h2 id="specialties-title">Especialidades más solicitadas</h2>
+                </div>
+                <span class="dashboard-panel__badge">Top 5</span>
+            </div>
+
+            <p class="visually-hidden" [id]="barSummaryId">{{ specialtySummary() }}</p>
+
+            <div class="chart-frame chart-frame--bar">
+                <p-chart type="bar" [data]="barData()" [options]="barOptions()"></p-chart>
+            </div>
+        </article>
+
+        <article class="dashboard-panel dashboard-panel--line" aria-labelledby="income-title"
+            [attr.aria-describedby]="lineSummaryId">
+            <div class="dashboard-panel__header">
+                <div>
+                    <span class="dashboard-panel__eyebrow">Caja simulada</span>
+                    <h2 id="income-title">Ingresos mensuales</h2>
+                </div>
+                <span class="dashboard-panel__badge">12 meses</span>
+            </div>
+
+            <p class="visually-hidden" [id]="lineSummaryId">{{ incomeSummary() }}</p>
+
+            <div class="chart-frame chart-frame--line">
+                <p-chart type="line" [data]="lineData()" [options]="lineOptions()"></p-chart>
+            </div>
+        </article>
+    </section>
+    }
+</div>
