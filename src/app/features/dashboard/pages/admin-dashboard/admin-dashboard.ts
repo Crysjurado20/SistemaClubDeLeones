@@ -18,6 +18,10 @@ type LineChartData = ChartData<'line', number[], string>;
 type PieChartOptions = ChartOptions<'pie'>;
 type BarChartOptions = ChartOptions<'bar'>;
 type LineChartOptions = ChartOptions<'line'>;
+type ChartColorPair = {
+    background: string;
+    hover: string;
+};
 
 @Component({
     selector: 'app-admin-dashboard',
@@ -30,6 +34,41 @@ type LineChartOptions = ChartOptions<'line'>;
 export class AdminDashboardComponent {
     private readonly dashboardApi = inject(DashboardApiService);
     readonly layoutService = inject(LayoutService);
+
+    private readonly stateColorMap: Record<string, ChartColorPair> = {
+        Atendida: {
+            background: '#16a34a',
+            hover: '#22c55e',
+        },
+        Cancelada: {
+            background: '#dc2626',
+            hover: '#ef4444',
+        },
+        NoAsistio: {
+            background: '#7c3aed',
+            hover: '#8b5cf6',
+        },
+        Confirmada: {
+            background: '#2563eb',
+            hover: '#3b82f6',
+        },
+        Pendiente: {
+            background: '#60a5fa',
+            hover: '#93c5fd',
+        },
+        PendientePago: {
+            background: '#0ea5e9',
+            hover: '#38bdf8',
+        },
+        Ocupada: {
+            background: '#f59e0b',
+            hover: '#fbbf24',
+        },
+        Bloqueada: {
+            background: '#64748b',
+            hover: '#94a3b8',
+        },
+    };
 
     readonly stats = signal<DashboardStatsResponse | null>(null);
     readonly loading = signal(true);
@@ -135,7 +174,7 @@ export class AdminDashboardComponent {
         const textColor = this.readStyleValue(documentStyle, '--text-color', '#1f2937');
         const textColorSecondary = this.readStyleValue(documentStyle, '--text-color-secondary', '#64748b');
         const surfaceBorder = this.readStyleValue(documentStyle, '--surface-border', '#dbe4f0');
-        const primaryColor = this.readStyleValue(documentStyle, '--p-primary-500', '#0f766e');
+        const incomeColor = '#2563eb';
 
         const stateItems = this.stats()?.citasPorEstado ?? [];
         const specialtyItems = this.stats()?.especialidadesMasSolicitadas ?? [];
@@ -143,10 +182,7 @@ export class AdminDashboardComponent {
 
         const stateLabels = stateItems.map((item) => item.etiqueta);
         const stateValues = stateItems.map((item) => item.cantidad);
-        const statePalette = this.buildPalette(
-            ['#0f766e', '#2563eb', '#14b8a6', '#f59e0b', '#ef4444', '#7c3aed', '#f97316', '#64748b'],
-            stateItems.length,
-        );
+        const statePalette = stateItems.map((item) => this.resolveStatePalette(item.codigo));
         const stateTotal = stateValues.reduce((sum, value) => sum + value, 0);
 
         this.pieData.set({
@@ -154,11 +190,8 @@ export class AdminDashboardComponent {
             datasets: [
                 {
                     data: stateValues,
-                    backgroundColor: statePalette,
-                    hoverBackgroundColor: this.buildPalette(
-                        ['#0d9488', '#3b82f6', '#2dd4bf', '#fbbf24', '#f87171', '#8b5cf6', '#fb923c', '#94a3b8'],
-                        stateItems.length,
-                    ),
+                    backgroundColor: statePalette.map((item) => item.background),
+                    hoverBackgroundColor: statePalette.map((item) => item.hover),
                     borderWidth: 0,
                 },
             ],
@@ -251,12 +284,12 @@ export class AdminDashboardComponent {
                     data: incomeValues,
                     fill: true,
                     tension: 0.36,
-                    borderColor: primaryColor,
-                    backgroundColor: 'rgba(15, 118, 110, 0.14)',
-                    pointBorderColor: primaryColor,
-                    pointBackgroundColor: primaryColor,
+                    borderColor: incomeColor,
+                    backgroundColor: 'rgba(37, 99, 235, 0.14)',
+                    pointBorderColor: incomeColor,
+                    pointBackgroundColor: incomeColor,
                     pointHoverBackgroundColor: '#ffffff',
-                    pointHoverBorderColor: primaryColor,
+                    pointHoverBorderColor: incomeColor,
                     pointRadius: 4,
                     pointHoverRadius: 6,
                     borderWidth: 2.5,
@@ -316,6 +349,13 @@ export class AdminDashboardComponent {
         }
 
         return Array.from({ length: size }, (_, index) => palette[index % palette.length]);
+    }
+
+    private resolveStatePalette(code: string): ChartColorPair {
+        return this.stateColorMap[code] ?? {
+            background: '#2563eb',
+            hover: '#3b82f6',
+        };
     }
 
     private createEmptyPieData(): PieChartData {
