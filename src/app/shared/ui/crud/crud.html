@@ -109,7 +109,7 @@
       <td class="text-center whitespace-nowrap">
         <p-button
           icon="pi pi-pencil"
-          class="mr-2"
+          styleClass="mr-2 crud-edit-btn"
           [rounded]="true"
           [outlined]="true"
           (onClick)="editItem(rowData)"
@@ -117,6 +117,7 @@
         <p-button
           icon="pi pi-trash"
           severity="danger"
+          styleClass="crud-delete-btn"
           [rounded]="true"
           [outlined]="true"
           (onClick)="deleteItem(rowData)"

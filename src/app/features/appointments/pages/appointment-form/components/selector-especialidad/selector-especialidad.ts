@@ -72,6 +72,10 @@ export class SelectorEspecialidadComponent implements OnInit {
     }
 
     buscar() {
+        if (this.isLoading || this.busy) {
+            return;
+        }
+
         if (!this.dropdownValue) {
             return;
         }

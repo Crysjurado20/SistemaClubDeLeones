@@ -31,6 +31,7 @@ export interface TableColumn {
     ConfirmDialogModule,
   ],
   templateUrl: './crud.html',
+  styleUrl: './crud.scss',
   providers: [ConfirmationService],
 })
 export class GenericCrudComponent {

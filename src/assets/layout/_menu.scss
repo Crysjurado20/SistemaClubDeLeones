@@ -138,6 +138,15 @@
     }
 }
 
+:root.app-dark .layout-menu ul a.active-route {
+    color: var(--primary-200);
+    background-color: rgba(96, 165, 250, 0.18);
+}
+
+:root.app-dark .layout-menu ul a.active-route:hover {
+    background-color: rgba(96, 165, 250, 0.28);
+}
+
 .layout-submenu-enter-from,
 .layout-submenu-leave-to {
     max-height: 0;

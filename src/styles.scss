@@ -6,6 +6,137 @@
     color-scheme: dark;
 }
 
+:root.a11y-font-xsmall {
+    font-size: 87.5%;
+}
+
+:root.a11y-font-small {
+    font-size: 93.75%;
+}
+
+:root.a11y-font-normal {
+    font-size: 100%;
+}
+
+:root.a11y-font-large {
+    font-size: 112.5%;
+}
+
+:root.a11y-font-xlarge {
+    font-size: 125%;
+}
+
+:root.a11y-spacing-wide body,
+:root.a11y-spacing-wide p,
+:root.a11y-spacing-wide li,
+:root.a11y-spacing-wide label,
+:root.a11y-spacing-wide button,
+:root.a11y-spacing-wide input,
+:root.a11y-spacing-wide textarea,
+:root.a11y-spacing-wide .p-button,
+:root.a11y-spacing-wide .p-inputtext {
+    line-height: 1.65;
+    letter-spacing: 0.01em;
+    word-spacing: 0.06em;
+}
+
+:root.a11y-reduce-motion *,
+:root.a11y-reduce-motion *::before,
+:root.a11y-reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+
+/* Fallback global styles for landing accessibility panel. */
+.landing-a11y-wrapper {
+    position: relative;
+}
+
+.landing-a11y-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    width: 20rem;
+    padding: 0.8rem;
+    border-radius: 0.8rem;
+    border: 1px solid var(--surface-border);
+    background: var(--surface-overlay);
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.2);
+    z-index: 1300;
+}
+
+.landing-a11y-panel__title {
+    margin: 0 0 0.6rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.landing-a11y-panel__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.landing-a11y-panel__section + .landing-a11y-panel__section {
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--surface-border);
+}
+
+.landing-a11y-panel__label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.landing-a11y-segmented {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+}
+
+.landing-a11y-segmented__btn,
+.landing-a11y-toggle {
+    border: 1px solid var(--surface-border);
+    background: transparent;
+    color: var(--text-color);
+    border-radius: 0.6rem;
+    min-height: 2rem;
+    padding: 0.35rem 0.55rem;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.landing-a11y-segmented__btn:hover,
+.landing-a11y-toggle:hover {
+    background: var(--surface-hover);
+}
+
+.landing-a11y-segmented__btn.is-active,
+.landing-a11y-toggle.is-active {
+    border-color: var(--primary-color);
+    background: color-mix(in srgb, var(--primary-color) 16%, transparent);
+    font-weight: 700;
+}
+
+.landing-a11y-toggle {
+    width: 100%;
+    text-align: left;
+}
+
+@media (max-width: 1023px) {
+    .landing-a11y-panel {
+        position: static;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+}
+
 /* You can add global styles to this file, and also import other style files */
 
 .dot-spinner {
@@ -97,4 +228,12 @@
     50% {
         opacity: 1;
     }
+}
+
+.landing-a11y-segmented__btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.35rem 0.4rem;
+    font-size: 0.78rem;
+    white-space: nowrap;
 }

@@ -3,16 +3,49 @@
 	border-bottom: 1px solid var(--surface-border);
 }
 
+:host-context(.app-dark) ::ng-deep .agenda-tabs .p-tab {
+	color: var(--surface-200);
+}
+
+:host-context(.app-dark) ::ng-deep .agenda-tabs .p-tab[aria-selected='true'] {
+	background: rgba(96, 165, 250, 0.2);
+	color: #dbeafe;
+}
+
+:host ::ng-deep .dark-aware-outlined.p-button.p-button-outlined {
+	border-color: var(--surface-300);
+	color: var(--surface-700);
+}
+
+:host-context(.app-dark) ::ng-deep .dark-aware-outlined.p-button.p-button-outlined {
+	border-color: var(--surface-500);
+	background: rgba(148, 163, 184, 0.14);
+	color: var(--surface-0);
+}
+
+:host-context(.app-dark) ::ng-deep .dark-aware-outlined.p-button.p-button-outlined:hover {
+	background: rgba(148, 163, 184, 0.24);
+}
+
 .agenda-estados {
 	font-family: var(--p-font-family);
 }
 
 :host ::ng-deep .slot-disponible {
 	cursor: pointer;
+	background: rgba(59, 130, 246, 0.12);
+}
+
+:host-context(.app-dark) ::ng-deep .slot-disponible {
+	background: rgba(96, 165, 250, 0.28);
 }
 
 :host ::ng-deep .slot-disponible:hover {
 	background: var(--surface-hover);
+}
+
+:host-context(.app-dark) ::ng-deep .slot-disponible:hover {
+	background: rgba(147, 197, 253, 0.38);
 }
 
 :host ::ng-deep .slot-no-disponible {

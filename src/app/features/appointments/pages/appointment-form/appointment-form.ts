@@ -74,10 +74,18 @@ export class AppointmentsFormComponent {
   listaMedicos: Array<PatientDoctorAvailability & { horarios: Array<any> }> = [];
 
   recibirEspecialidad(especialidad: any) {
+    const previousSpecialtyId = this.especialidadSeleccionada?.idEspecialidad ?? null;
+    const nextSpecialtyId = especialidad?.idEspecialidad ?? null;
+    const specialtyChanged = previousSpecialtyId !== nextSpecialtyId;
+
     this.especialidadSeleccionada = especialidad;
-    this.mostrandoCalendario = true;
-    // Mostrar overlay inmediatamente para mejorar UX hasta que el calendario reporte loading=false
-    this.cargandoCalendario = true;
+
+    if (!this.mostrandoCalendario || specialtyChanged) {
+      this.mostrandoCalendario = true;
+      // Solo activamos loading cuando realmente hay una carga nueva del calendario.
+      this.cargandoCalendario = true;
+    }
+
     this.cdr.markForCheck();
   }
 

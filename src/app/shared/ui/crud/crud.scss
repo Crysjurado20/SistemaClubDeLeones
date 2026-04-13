@@ -1,0 +1,32 @@
+:host-context(.app-dark) ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+	color: var(--surface-100);
+}
+
+:host-context(.app-dark) ::ng-deep .p-datatable.p-datatable-hoverable .p-datatable-tbody > tr:not(.p-highlight):hover > td,
+:host-context(.app-dark) ::ng-deep .p-datatable .p-datatable-tbody > tr:not(.p-highlight):hover > td,
+:host-context(.app-dark) ::ng-deep .p-datatable-table .p-datatable-tbody > tr:hover > td {
+	background: rgba(51, 65, 85, 0.58) !important;
+	color: var(--surface-0) !important;
+}
+
+:host-context(.app-dark) ::ng-deep .crud-edit-btn.p-button.p-button-outlined {
+	border-color: rgba(96, 165, 250, 0.7) !important;
+	color: #bfdbfe !important;
+	background: rgba(59, 130, 246, 0.16) !important;
+}
+
+:host-context(.app-dark) ::ng-deep .crud-edit-btn.p-button.p-button-outlined:hover {
+	background: rgba(59, 130, 246, 0.28) !important;
+	color: #dbeafe !important;
+}
+
+:host-context(.app-dark) ::ng-deep .crud-delete-btn.p-button.p-button-outlined {
+	border-color: rgba(248, 113, 113, 0.7) !important;
+	color: #fecaca !important;
+	background: rgba(239, 68, 68, 0.16) !important;
+}
+
+:host-context(.app-dark) ::ng-deep .crud-delete-btn.p-button.p-button-outlined:hover {
+	background: rgba(239, 68, 68, 0.28) !important;
+	color: #fee2e2 !important;
+}

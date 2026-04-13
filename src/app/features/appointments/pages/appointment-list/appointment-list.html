@@ -76,7 +76,7 @@
             pButton
             label="Volver"
             icon="pi pi-arrow-left"
-            class="p-button-outlined"
+            class="p-button-outlined dark-aware-outlined"
             routerLink="/appointments"
           ></button>
         </div>
@@ -100,7 +100,7 @@
               <button
                 pButton
                 label="Limpiar Filtros"
-                class="p-button-outlined w-full sm:w-auto"
+                class="p-button-outlined dark-aware-outlined w-full sm:w-auto"
                 icon="pi pi-filter-slash"
                 (click)="clear(dt1)"
               ></button>
@@ -167,7 +167,7 @@
 
           <ng-template #body let-cita>
             <tr>
-              <td class="font-medium text-surface-600">{{ cita.cedula }}</td>
+              <td class="font-medium text-surface-700 dark:text-surface-100">{{ cita.cedula }}</td>
               <td>
                 <div class="flex items-center gap-2">
                   <i class="pi pi-user-md text-primary"></i>

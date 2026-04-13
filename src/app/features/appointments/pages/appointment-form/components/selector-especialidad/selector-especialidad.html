@@ -31,7 +31,8 @@
           label="Buscar"
           icon="pi pi-search"
           severity="success"
-          [loading]="isLoading"
+          [loading]="isLoading || busy"
+          [disabled]="isLoading || busy || !dropdownValue"
           (click)="buscar()"
         />
       </div>

@@ -340,7 +340,7 @@ export class WeeklyAgendaComponent implements OnInit, OnChanges {
 
     getClaseCelda(fecha: Date, hora: string): string {
         if (this.getTurnosEnSlotAll(fecha, hora).length > 0) return '';
-        return this.isSlotDisponible(fecha, hora) ? 'bg-primary-50/40 dark:bg-primary-950/20' : '';
+        return this.isSlotDisponible(fecha, hora) ? 'slot-disponible' : '';
     }
 
     private isSlotEnHorario(fecha: Date, hora: string): boolean {

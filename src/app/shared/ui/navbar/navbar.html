@@ -35,6 +35,70 @@
 
                 <ng-content select="[navbar-actions]"></ng-content>
 
+                <div class="layout-topbar-accessibility">
+                    <button
+                        type="button"
+                        class="layout-topbar-action layout-topbar-action-accessibility"
+                        (click)="toggleAccessibilityPanel()"
+                        [attr.aria-expanded]="accessibilityOpen()"
+                        aria-controls="topbar-accessibility-panel"
+                        aria-label="Opciones de accesibilidad"
+                    >
+                        <i class="pi pi-eye" aria-hidden="true"></i>
+                        <span>Accesibilidad</span>
+                    </button>
+
+                    @if (accessibilityOpen()) {
+                    <div id="topbar-accessibility-panel" class="topbar-a11y-panel" role="region" aria-label="Opciones de accesibilidad">
+                        <p class="topbar-a11y-panel__title">Accesibilidad</p>
+
+                        <div class="topbar-a11y-panel__section">
+                            <span class="topbar-a11y-panel__label">Tamaño de letra</span>
+                            <div class="topbar-a11y-segmented">
+                                <button type="button" class="topbar-a11y-segmented__btn" [class.is-active]="fontScale() === 'xsmall'" (click)="setFontScale('xsmall')">A--</button>
+                                <button type="button" class="topbar-a11y-segmented__btn" [class.is-active]="fontScale() === 'small'" (click)="setFontScale('small')">A-</button>
+                                <button type="button" class="topbar-a11y-segmented__btn" [class.is-active]="fontScale() === 'normal'" (click)="setFontScale('normal')">A</button>
+                                <button type="button" class="topbar-a11y-segmented__btn" [class.is-active]="fontScale() === 'large'" (click)="setFontScale('large')">A+</button>
+                                <button type="button" class="topbar-a11y-segmented__btn" [class.is-active]="fontScale() === 'xlarge'" (click)="setFontScale('xlarge')">A++</button>
+                            </div>
+                        </div>
+
+                        <div class="topbar-a11y-panel__section">
+                            <span class="topbar-a11y-panel__label">Espaciado de lectura</span>
+                            <div class="topbar-a11y-segmented">
+                                <button
+                                    type="button"
+                                    class="topbar-a11y-segmented__btn"
+                                    [class.is-active]="textSpacing() === 'normal'"
+                                    (click)="setTextSpacing('normal')"
+                                >
+                                    Normal
+                                </button>
+                                <button
+                                    type="button"
+                                    class="topbar-a11y-segmented__btn"
+                                    [class.is-active]="textSpacing() === 'wide'"
+                                    (click)="setTextSpacing('wide')"
+                                >
+                                    Amplio
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="topbar-a11y-panel__section">
+                            <button
+                                type="button"
+                                class="topbar-a11y-toggle"
+                                [class.is-active]="reducedMotion()"
+                                (click)="toggleReducedMotion()"
+                            >
+                                Reducir movimiento
+                            </button>
+                        </div>
+                    </div>
+                    }
+                </div>
+
                 @if (showUser()) {
                 <button type="button"
                     class="layout-topbar-action layout-topbar-action-user w-auto px-4 flex items-center gap-2"
@@ -45,7 +109,7 @@
                 }
 
                 @if (showLogout()) {
-                <button type="button" class="layout-topbar-action" (click)="onLogout()" aria-label="Salir">
+                <button type="button" class="layout-topbar-action layout-topbar-action-logout" (click)="onLogout()" aria-label="Salir">
                     <i class="pi pi-sign-out" aria-hidden="true"></i>
                     <span>Salir</span>
                 </button>

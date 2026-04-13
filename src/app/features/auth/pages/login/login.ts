@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router'; // Importante para la redirección
+import { ActivatedRoute, Router, RouterLink } from '@angular/router'; // Importante para la redirección
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { FluidModule } from 'primeng/fluid';
@@ -46,6 +46,7 @@ export class Login {
     authApi = inject(AuthApiService);
     sessionAuth = inject(SessionAuthService);
     router = inject(Router);
+    route = inject(ActivatedRoute);
     messageService = inject(MessageService);
 
     checked = false;
@@ -58,12 +59,14 @@ export class Login {
     };
 
     private normalizeLoginResponse(raw: unknown): { token: string; idUsuario: number; nombres: string; rol: string } {
-        const data = (raw ?? {}) as Record<string, unknown>;
+        const root = (raw ?? {}) as Record<string, unknown>;
+        const nested = (root['data'] ?? root['Data'] ?? root['usuario'] ?? root['Usuario'] ?? {}) as Record<string, unknown>;
 
-        const token = (data['token'] ?? data['Token'] ?? '').toString().trim();
-        const rol = (data['rol'] ?? data['Rol'] ?? '').toString().trim();
-        const nombres = (data['nombres'] ?? data['Nombres'] ?? '').toString().trim();
-        const idRaw = data['idUsuario'] ?? data['IdUsuario'];
+        const rawToken = (root['token'] ?? root['Token'] ?? root['access_token'] ?? root['accessToken'] ?? nested['token'] ?? nested['Token'] ?? nested['access_token'] ?? nested['accessToken'] ?? '').toString().trim();
+        const token = rawToken.replace(/^Bearer\s+/i, '').trim();
+        const rol = (root['rol'] ?? root['Rol'] ?? root['role'] ?? root['Role'] ?? nested['rol'] ?? nested['Rol'] ?? nested['role'] ?? nested['Role'] ?? '').toString().trim();
+        const nombres = (root['nombres'] ?? root['Nombres'] ?? root['nombre'] ?? root['Nombre'] ?? nested['nombres'] ?? nested['Nombres'] ?? nested['nombre'] ?? nested['Nombre'] ?? '').toString().trim();
+        const idRaw = root['idUsuario'] ?? root['IdUsuario'] ?? root['id'] ?? root['Id'] ?? nested['idUsuario'] ?? nested['IdUsuario'] ?? nested['id'] ?? nested['Id'];
         const idUsuario = typeof idRaw === 'number' ? idRaw : Number(idRaw ?? 0);
 
         return {
@@ -77,6 +80,13 @@ export class Login {
     private isValidEmail(value: string): boolean {
         const v = (value ?? '').toString().trim();
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    }
+
+    private getSafeReturnUrl(): string | null {
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl')?.trim() ?? '';
+        if (!returnUrl.startsWith('/')) return null;
+        if (returnUrl.startsWith('/auth/login')) return null;
+        return returnUrl;
     }
 
     iniciarSesion() {
@@ -134,16 +144,32 @@ export class Login {
                         rol: normalized.rol
                     }));
 
+                    const returnUrl = this.getSafeReturnUrl();
+                    if (returnUrl) {
+                        void this.router.navigateByUrl(returnUrl);
+                        return;
+                    }
+
                     const roleForHome = normalized.rol || this.sessionAuth.getPrimaryAppRole();
                     const homeRoute = this.sessionAuth.getHomeRouteByRole(roleForHome);
                     void this.router.navigateByUrl(homeRoute);
                 },
                 error: (err) => {
                     console.error('Error en login:', err);
+
+                    const connectionError =
+                        err?.status === 0 ||
+                        (typeof err?.message === 'string' &&
+                            err.message.toLowerCase().includes('failed to fetch'));
+
+                    const detail = connectionError
+                        ? 'No se pudo conectar con la API. Verifica que el backend esté ejecutándose.'
+                        : err.error?.mensaje || 'Credenciales incorrectas. Intenta de nuevo.';
+
                     this.messageService.add({
                         severity: 'error',
                         summary: 'No se pudo iniciar sesión',
-                        detail: err.error?.mensaje || 'Credenciales incorrectas. Intenta de nuevo.',
+                        detail,
                     });
                 }
             });

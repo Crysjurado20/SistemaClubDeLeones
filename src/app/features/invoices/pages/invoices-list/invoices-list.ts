@@ -27,6 +27,7 @@ export interface FacturaElectronica {
   especialidad: string;
   total: number;
   estado: string;
+  anulada?: boolean;
 }
 
 @Component({
@@ -48,6 +49,7 @@ export interface FacturaElectronica {
     Header,
   ],
   templateUrl: './invoices-list.html',
+  styleUrl: './invoices-list.scss',
 })
 export class InvoicesListComponent implements OnInit {
   nombrePaciente: string = 'Usuario';
@@ -131,5 +133,13 @@ export class InvoicesListComponent implements OnInit {
       .catch((error: any) => {
         console.error('Error al generar el PDF:', error);
       });
+  }
+
+  getInvoiceSeverity(estado: string): 'success' | 'warn' | 'danger' | 'info' {
+    const normalized = (estado ?? '').toString().trim().toLowerCase();
+    if (normalized.includes('anulad')) return 'danger';
+    if (normalized.includes('pendiente')) return 'warn';
+    if (normalized.includes('pagad')) return 'success';
+    return 'info';
   }
 }

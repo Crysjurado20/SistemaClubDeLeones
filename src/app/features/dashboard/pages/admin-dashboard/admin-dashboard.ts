@@ -170,9 +170,10 @@ export class AdminDashboardComponent {
     }
 
     private rebuildCharts(): void {
+        const isDarkTheme = this.layoutService.isDarkTheme();
         const documentStyle = getComputedStyle(document.documentElement);
-        const textColor = this.readStyleValue(documentStyle, '--text-color', '#1f2937');
-        const textColorSecondary = this.readStyleValue(documentStyle, '--text-color-secondary', '#64748b');
+        const textColor = isDarkTheme ? '#e2e8f0' : '#1f2937';
+        const textColorSecondary = isDarkTheme ? '#94a3b8' : '#64748b';
         const surfaceBorder = this.readStyleValue(documentStyle, '--surface-border', '#dbe4f0');
         const incomeColor = '#2563eb';
 

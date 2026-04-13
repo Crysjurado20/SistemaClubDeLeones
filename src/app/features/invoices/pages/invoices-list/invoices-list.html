@@ -74,7 +74,7 @@
             pButton
             label="Volver"
             icon="pi pi-arrow-left"
-            class="p-button-outlined"
+            class="p-button-outlined dark-aware-outlined"
             routerLink="/appointments"
           ></button>
         </div>
@@ -98,7 +98,7 @@
               <button
                 pButton
                 label="Limpiar Filtros"
-                class="p-button-outlined w-full sm:w-auto"
+                class="p-button-outlined dark-aware-outlined w-full sm:w-auto"
                 icon="pi pi-filter-slash"
                 (click)="clear(dt1)"
               ></button>
@@ -145,7 +145,7 @@
           <ng-template #body let-factura>
             <tr>
               <td>
-                <div class="flex justify-center items-center w-full font-bold text-primary">
+                <div class="flex justify-center items-center w-full font-bold text-surface-700 dark:text-surface-100">
                   {{ factura.numeroFactura }}
                 </div>
               </td>
@@ -179,7 +179,7 @@
 
               <td>
                 <div class="flex justify-center items-center w-full">
-                  <p-tag [value]="factura.estado" severity="success" [rounded]="true"></p-tag>
+                  <p-tag [value]="factura.estado" [severity]="getInvoiceSeverity(factura.estado)" [rounded]="true"></p-tag>
                 </div>
               </td>
 

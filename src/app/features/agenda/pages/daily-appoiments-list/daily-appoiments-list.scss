@@ -3,6 +3,30 @@
 	border-bottom: 1px solid var(--surface-border);
 }
 
+:host-context(.app-dark) ::ng-deep .agenda-tabs .p-tab {
+	color: var(--surface-200);
+}
+
+:host-context(.app-dark) ::ng-deep .agenda-tabs .p-tab[aria-selected='true'] {
+	background: rgba(96, 165, 250, 0.2);
+	color: #dbeafe;
+}
+
+:host ::ng-deep .dark-aware-outlined.p-button.p-button-outlined {
+	border-color: var(--surface-300);
+	color: var(--surface-700);
+}
+
+:host-context(.app-dark) ::ng-deep .dark-aware-outlined.p-button.p-button-outlined {
+	border-color: var(--surface-500);
+	background: rgba(148, 163, 184, 0.14);
+	color: var(--surface-0);
+}
+
+:host-context(.app-dark) ::ng-deep .dark-aware-outlined.p-button.p-button-outlined:hover {
+	background: rgba(148, 163, 184, 0.24);
+}
+
 :host ::ng-deep .daily-centered-table .p-datatable-thead > tr > th {
 	text-align: center;
 }

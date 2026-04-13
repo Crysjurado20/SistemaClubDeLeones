@@ -37,15 +37,67 @@
         </li>
     </ul>
     <div class="flex border-t lg:border-t-0 border-surface py-4 lg:py-0 mt-4 lg:mt-0 gap-2">
+        <div class="landing-a11y-wrapper">
+            <button
+                pButton
+                pRipple
+                [rounded]="true"
+                [text]="true"
+                icon="pi pi-eye"
+                label="Accesibilidad"
+                class="landing-text-action"
+                (click)="toggleAccessibilityPanel()"
+                [attr.aria-expanded]="accessibilityOpen()"
+                aria-controls="landing-a11y-panel"
+            ></button>
+
+            @if (accessibilityOpen()) {
+            <div id="landing-a11y-panel" class="landing-a11y-panel" role="region" aria-label="Opciones de accesibilidad">
+                <p class="landing-a11y-panel__title">Accesibilidad</p>
+
+                <div class="landing-a11y-panel__section">
+                    <span class="landing-a11y-panel__label">Tamaño de letra</span>
+                    <div class="landing-a11y-segmented">
+                        <button type="button" class="landing-a11y-segmented__btn" [class.is-active]="fontScale() === 'xsmall'" (click)="setFontScale('xsmall')">A--</button>
+                        <button type="button" class="landing-a11y-segmented__btn" [class.is-active]="fontScale() === 'small'" (click)="setFontScale('small')">A-</button>
+                        <button type="button" class="landing-a11y-segmented__btn" [class.is-active]="fontScale() === 'normal'" (click)="setFontScale('normal')">A</button>
+                        <button type="button" class="landing-a11y-segmented__btn" [class.is-active]="fontScale() === 'large'" (click)="setFontScale('large')">A+</button>
+                        <button type="button" class="landing-a11y-segmented__btn" [class.is-active]="fontScale() === 'xlarge'" (click)="setFontScale('xlarge')">A++</button>
+                    </div>
+                </div>
+
+                <div class="landing-a11y-panel__section">
+                    <span class="landing-a11y-panel__label">Espaciado de lectura</span>
+                    <div class="landing-a11y-segmented">
+                        <button type="button" class="landing-a11y-segmented__btn" [class.is-active]="textSpacing() === 'normal'" (click)="setTextSpacing('normal')">Normal</button>
+                        <button type="button" class="landing-a11y-segmented__btn" [class.is-active]="textSpacing() === 'wide'" (click)="setTextSpacing('wide')">Amplio</button>
+                    </div>
+                </div>
+
+                <div class="landing-a11y-panel__section">
+                    <button
+                        type="button"
+                        class="landing-a11y-toggle"
+                        [class.is-active]="reducedMotion()"
+                        (click)="toggleReducedMotion()"
+                    >
+                        Reducir movimiento
+                    </button>
+                </div>
+            </div>
+            }
+        </div>
+
         <button pButton pRipple [label]="darkTheme() ? 'Modo claro' : 'Modo oscuro'"
             [icon]="darkTheme() ? 'pi pi-sun' : 'pi pi-moon'" [rounded]="true" [text]="true" (click)="toggleDarkMode()"
             [attr.aria-label]="darkTheme() ? 'Activar modo claro' : 'Activar modo oscuro'"
-            [attr.aria-pressed]="darkTheme()"></button>
+            [attr.aria-pressed]="darkTheme()" class="landing-text-action"></button>
 
         @if (isLoggedIn()) {
         <button pButton pRipple label="Home" icon="pi pi-home" [rounded]="true" (click)="goHomeByRole()"></button>
         } @else {
-        <button pButton pRipple label="Iniciar sesión" routerLink="/auth/login" [rounded]="true" [text]="true"></button>
+        <button pButton pRipple label="Iniciar sesión" routerLink="/auth/login" [rounded]="true" [text]="true"
+            class="landing-text-action"></button>
         <button pButton pRipple label="Registrarse" routerLink="/auth/register" [rounded]="true"></button>
         }
     </div>

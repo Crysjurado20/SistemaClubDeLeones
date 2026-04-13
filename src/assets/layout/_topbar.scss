@@ -58,11 +58,13 @@
 
         i {
             font-size: 1.25rem;
+            transition: color var(--element-transition-duration);
         }
 
         span {
             font-size: 1rem;
             display: none;
+            transition: color var(--element-transition-duration);
         }
 
         &.layout-topbar-action-highlight {
@@ -106,9 +108,135 @@
         gap: 1rem;
     }
 
+    .layout-topbar-accessibility {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .topbar-a11y-panel {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 0.5rem);
+        width: 20rem;
+        border-radius: var(--content-border-radius);
+        border: 1px solid var(--surface-border);
+        background: var(--surface-overlay);
+        box-shadow:
+            0px 3px 5px rgba(0, 0, 0, 0.02),
+            0px 0px 2px rgba(0, 0, 0, 0.05),
+            0px 1px 4px rgba(0, 0, 0, 0.08);
+        padding: 0.8rem;
+        z-index: 1201;
+    }
+
+    .topbar-a11y-panel__title {
+        margin: 0 0 0.6rem;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+
+    .topbar-a11y-panel__section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+
+    .topbar-a11y-panel__section + .topbar-a11y-panel__section {
+        margin-top: 0.6rem;
+        padding-top: 0.6rem;
+        border-top: 1px solid var(--surface-border);
+    }
+
+    .topbar-a11y-panel__label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-secondary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .topbar-a11y-segmented {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.35rem;
+    }
+
+    .topbar-a11y-segmented__btn,
+    .topbar-a11y-toggle {
+        border: 1px solid var(--surface-border);
+        background: transparent;
+        color: var(--text-color);
+        border-radius: 0.6rem;
+        min-height: 2rem;
+        padding: 0.35rem 0.55rem;
+        cursor: pointer;
+        transition:
+            background-color var(--element-transition-duration),
+            color var(--element-transition-duration),
+            border-color var(--element-transition-duration);
+    }
+
+    .topbar-a11y-segmented__btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 0.35rem 0.4rem;
+        font-size: 0.78rem;
+        white-space: nowrap;
+    }
+
+    .topbar-a11y-segmented__btn:hover,
+    .topbar-a11y-toggle:hover {
+        background: var(--surface-hover);
+    }
+
+    .topbar-a11y-segmented__btn.is-active,
+    .topbar-a11y-toggle.is-active {
+        border-color: var(--primary-color);
+        background: color-mix(in srgb, var(--primary-color) 16%, transparent);
+        color: var(--text-color);
+        font-weight: 700;
+    }
+
+    .topbar-a11y-toggle {
+        text-align: left;
+        width: 100%;
+    }
+
     .layout-config-menu {
         display: flex;
         gap: 1rem;
+    }
+}
+
+:root.app-dark {
+    .layout-topbar {
+        .layout-topbar-action.layout-topbar-action-user:hover,
+        .layout-topbar-action.layout-topbar-action-user:focus-visible {
+            background-color: rgba(96, 165, 250, 0.2);
+            color: #eff6ff;
+        }
+
+        .layout-topbar-action.layout-topbar-action-logout:hover,
+        .layout-topbar-action.layout-topbar-action-logout:focus-visible {
+            background-color: rgba(248, 113, 113, 0.2);
+            color: #fecaca;
+        }
+
+        .layout-topbar-action.layout-topbar-action-user:hover i,
+        .layout-topbar-action.layout-topbar-action-user:hover span,
+        .layout-topbar-action.layout-topbar-action-user:focus-visible i,
+        .layout-topbar-action.layout-topbar-action-user:focus-visible span {
+            color: #eff6ff;
+        }
+
+        .layout-topbar-action.layout-topbar-action-logout:hover i,
+        .layout-topbar-action.layout-topbar-action-logout:hover span,
+        .layout-topbar-action.layout-topbar-action-logout:focus-visible i,
+        .layout-topbar-action.layout-topbar-action-logout:focus-visible span {
+            color: #fecaca;
+        }
     }
 }
 
@@ -146,6 +274,17 @@
 
             .layout-topbar-menu-content {
                 gap: 0.5rem;
+            }
+
+            .layout-topbar-accessibility {
+                width: 100%;
+                display: block;
+            }
+
+            .topbar-a11y-panel {
+                position: static;
+                width: 100%;
+                margin-top: 0.45rem;
             }
 
             .layout-topbar-action {
